@@ -66,7 +66,7 @@ Notation "bt '.(go_left)'" := (BinaryTree.go_left _ _ bt) (at level 1).
 Notation "bt '.(go_right)'" := (BinaryTree.go_right _ _ bt) (at level 1).
 Notation "'BinTree'" := (BinaryTree.BinaryTree) (at level 0).
 
-Record Heap (h: BinTree Z Z): Prop := (*大顶堆*)
+Record Heap (h: BinTree Z Z): Prop := (*小顶堆*)
 {
   heap_l: forall x y: Z, BinaryTree.step_l h x y -> (x <= y)%Z;
   heap_r: forall x y: Z, BinaryTree.step_r h x y -> (x <= y)%Z;
@@ -74,3 +74,21 @@ Record Heap (h: BinTree Z Z): Prop := (*大顶堆*)
 
 Definition Abs (h: BinTree Z Z) (X: Z -> Prop): Prop :=
   X == h.(vvalid).
+
+
+Record PartialHeap (h: BinTree Z Z) (v: Z): Prop := {
+
+partial_heap_l: forall x y: Z, 
+  x <> v -> BinaryTree.step_l h x y -> (x <= y)%Z;
+
+
+partial_heap_r: forall x y: Z,
+  x <> v -> BinaryTree.step_r h x y -> (x <= y)%Z;
+  
+
+partial_heap_violation: exists y: Z,
+  (BinaryTree.step_l h v y \/ BinaryTree.step_r h v y) /\ (v > y)%Z;
+}.
+
+Definition LegalPartialHeap (h: BinTree Z Z): Prop :=
+  exists v, PartialHeap h v.
