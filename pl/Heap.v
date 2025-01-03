@@ -74,3 +74,90 @@ Record Heap (h: BinTree Z Z): Prop := (*大顶堆*)
 
 Definition Abs (h: BinTree Z Z) (X: Z -> Prop): Prop :=
   X == h.(vvalid).
+
+Record PartialHeap (h: BinTree Z Z): Prop := {
+  (* 存在一个节点v违反堆的性质 *)
+  exists_violation: exists v: Z,
+    h.(vvalid) v /\ (* v必须是合法节点 *)
+    (exists y: Z,
+      (BinaryTree.step_l h v y \/ BinaryTree.step_r h v y) /\ (v > y)%Z) /\
+    (* 其他所有节点都满足堆的性质 *)
+    (forall x y: Z,
+      x <> v -> 
+      (BinaryTree.step_l h x y \/ BinaryTree.step_r h x y) -> 
+      (x <= y)%Z);
+}.
+
+(* Definition move_up (h: BinTree Z Z) (v: Z): BinTree Z Z :=
+  {|
+    BinaryTree.vvalid := h.(vvalid);
+    BinaryTree.evalid := h.(evalid);
+    BinaryTree.src := fun e => 
+      match (h.(src) e =? v)%Z with
+      | true => h.(dst) e
+      | false => 
+        match (h.(dst) e =? v)%Z with
+        | true => h.(src) e
+        | false => h.(src) e
+        end
+      end;
+    BinaryTree.dst := fun e =>
+      match (h.(dst) e =? v)%Z with
+      | true => h.(src) e
+      | false => 
+        match (h.(src) e =? v)%Z with
+        | true => h.(dst) e
+        | false => h.(dst) e
+        end
+      end;
+    BinaryTree.go_left := h.(go_left)
+  |}. *)
+(* 首先定义 elements 函数 *)
+(* 首先定义一个有限集合的概念 *)
+
+Require Import PL.FixedPoint.
+Require Import PL.StateRelMonad. 
+
+Definition bind {A B: Type} (m: option A) (f: A -> option B): option B :=
+  match m with
+  | Some x => f x
+  | None => None
+  end.
+
+Notation "'do' x <- m1 ; m2" := 
+  (bind m1 (fun x => m2))
+  (at level 60, x ident, m1 at level 200, right associativity).
+
+Definition find_parent (bt: BinTree Z Z) (v parent: Z): Prop :=
+  BinaryTree.step_u bt v parent.
+
+Fixpoint swap_nodes (bt: BinTree Z Z) (v1 v2: Z) (bt': BinTree Z Z): Prop :=
+  match bt with
+
+Definition swap_nodes (bt: BinTree Z Z) (v1 v2: Z) (bt': BinTree Z Z): Prop :=
+  (* 交换节点 v1 和 v2，得到新的二叉树 bt' *)
+  bt'.(vvalid) == bt.(vvalid) /\
+  bt'.(evalid) == bt.(evalid) /\
+  (* 更新 src 和 dst *)
+  (forall e,
+      bt'.(src) e =
+        if Z.eq_dec (bt.(src) e) v1 then v2
+        else if Z.eq_dec (bt.(src) e) v2 then v1
+        else bt.(src) e) /\
+  (forall e,
+      bt'.(dst) e =
+        if Z.eq_dec (bt.(dst) e) v1 then v2
+        else if Z.eq_dec (bt.(dst) e) v2 then v1
+        else bt.(dst) e) /\
+  bt'.(go_left) = bt.(go_left).
+
+Definition move_up (v: Z): StateRelMonad.M (BinTree Z Z) unit :=
+  fun (bt1: BinTree Z Z) (_: unit) (bt2: BinTree Z Z) =>
+    (* 检查节点 v 是合法的 *)
+    bt1.(vvalid) v /\
+    (* 存在父节点 parent *)
+    exists parent,
+      (* 在 bt1 中找到 parent *)
+      BinaryTree.step_u bt1 v parent /\
+      (* 交换节点 v 和 parent，得到新的 bt2 *)
+      swap_nodes bt1 v parent bt2.
