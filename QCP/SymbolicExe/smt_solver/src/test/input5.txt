@@ -1,0 +1,2 @@
+TT; Be Pvequal (V_vari 13) (Ez_val 0)
+TT; Up Pnot (Be Pvequal (V_vari 13) (Ez_val 0))

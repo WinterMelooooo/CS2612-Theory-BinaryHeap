@@ -1,0 +1,41 @@
+
+id : 0
+priority : core(4)
+left : mce_evt_llistrep(?x) at 0
+right : mce_evt_llistrep(?y) at 1
+check : infer(x == y);
+action : left_erase(0);
+         right_erase(1);
+
+id : 1
+priority : core(2)
+right : mce_evt_llistrep(?y) at 0
+       mce_evt_lseg(?x, y) at 1
+check : infer(x == y);
+action : right_erase(1);
+
+id : 2
+priority : core(2)
+left : mce_evt_llistrep(?x) at 0
+right : mce_data(field_addr(x, mce_evt_llist, data)) at 1
+action : left_erase(0);
+         left_add(mce_data(field_addr(x, mce_evt_llist, data)));
+         left_add(mce_evt_llistrep_no_data(x));
+
+id : 3
+priority : core(2)
+left : mce_data(field_addr(?x, mce_evt_llist, data)) at 0
+right : mce_evt_llistrep(x) at 1
+action : right_erase(1);
+         right_add(mce_data(field_addr(x, mce_evt_llist, data)));
+         right_add(mce_evt_llistrep_no_data(x));
+
+id : 4
+priority : core(2)
+left : mce_evt_llistrep_no_data(?x) at 0
+right : data_at(field_addr(field_addr(x, mce_evt_llist, llnode), llist_node, next), PTR(struct llist_node), ?l1) at 1
+left : (field_addr(x, mce_evt_llist, llnode) != 0 || 0 != field_addr(x, mce_evt_llist, llnode)) at 2
+action : left_erase(0);
+         left_exist_add(l1 : Z);
+         left_add(mce_evt_llistrep(l1));
+         left_add(data_at(field_addr(field_addr(x, mce_evt_llist, llnode), llist_node, next), PTR(struct llist_node), (field_addr(x, mce_evt_llist, llnode))));

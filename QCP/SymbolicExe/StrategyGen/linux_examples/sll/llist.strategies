@@ -1,0 +1,100 @@
+#include "../../GeneratedStrategy/verification_list.h"
+#include "../../GeneratedStrategy/verification_stdlib.h"
+#include "llist.h"
+
+id : 1
+priority : core(0)
+left : llistrep(NULL, ?l) at 0
+action : left_erase(0);
+         left_add(l == 0);  
+
+id : 2
+priority : core(0)
+right : llistrep(NULL, ?l) at 0
+action : right_erase(0);
+         right_add(l == 0);
+
+id : 3
+priority : core(0)
+left : (?p : Z == NULL || NULL == ?p : Z) at 0
+right : llistrep(p, ?l) at 1
+action : right_erase(1);
+         right_add(l == 0);
+
+id : 4
+priority : core(0)
+left : llistrep(?p : Z, ?l) at 0
+       (p == NULL || NULL == p) at 1
+action : left_erase(0);
+         left_add(l == 0);
+
+id : 5
+priority : core(1)
+left : llistrep(?p : Z, ?l1) at 0
+right : llistrep(p, ?l2) at 1
+action : left_erase(0);
+         right_erase(1);
+         right_add(l1 == l2);
+
+id : 6
+priority : core(4)
+left : llistrep(?p : Z, ?l) at 0
+       (p != NULL || NULL != p) at 1
+right : (data_at(field_addr(p, llist_node, next), PTR(struct llist_node), ?q : Z)) at 2
+action : left_erase(0);
+         left_exist_add(a : Z);
+         left_add(data_at(field_addr(p, llist_node, next), PTR(struct llist_node), a));
+         left_add(llistrep(a, l - 1));
+         left_add(l > 0);
+
+id : 7
+priority : core(4)
+left : (?p : Z != NULL || NULL != ?p : Z) at 0
+right : llistrep(p, ?l) at 1
+action : right_erase(1);
+         right_exist_add(a : Z);
+         right_add(data_at(field_addr(p, llist_node, next), PTR(struct llist_node), a));
+         right_add(llistrep(a, l - 1));
+
+id : 8
+priority : core(3)
+left : llistseg(?p : Z, ?q : Z, ?l) at 0
+right : llistrep(p, ?l2) at 1 
+action : left_erase(0);
+         right_erase(1);
+         right_add(llistrep(q, l2 - l));
+
+id : 9
+priority : core(4)
+left : (data_at(field_addr(?p, llist_node, next), PTR(struct llist_node), ?q : Z)) at 0
+       (p != NULL || NULL != p) at 1
+right : llistrep(p, ?l) at 2 
+action : right_erase(2);
+         right_exist_add(a : Z);
+         right_add(data_at(field_addr(p, llist_node, next), PTR(struct llist_node), a));
+         right_add(llistrep(a, l - 1));
+
+id : 10
+priority : core(0)
+right : llistseg(?p : Z, p, ?l1) at 0
+        llistrep(p, ?l) at 1
+action : right_erase(0);
+         right_add(l1 == 0);
+
+id : 11
+priority : core(0)
+right : llistseg(?p : Z, p, ?l) at 0
+        (data_at(field_addr(p, llist_node, next), PTR(struct llist_node), ?q : Z)) at 1
+action : right_erase(0);
+         right_add(l == 0);
+
+id : 12
+priority : core(3)
+left : llistseg(?p : Z, ?q, ?l) at 0
+       data_at(field_addr(q, llist_node, next), PTR(struct llist_node), ?z : Z) at 1
+       (q != NULL || NULL != q) at 2
+right : llistseg(p, z, ?l1) at 3
+action : left_erase(0);
+         left_erase(1);
+         right_erase(3);
+         right_add(l1 == l + 1);

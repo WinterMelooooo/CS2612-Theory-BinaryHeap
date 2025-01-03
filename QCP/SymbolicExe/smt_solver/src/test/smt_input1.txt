@@ -1,0 +1,8 @@
+NOT(0- 1 - SMT_INT32_MAX < a_pre /\
+a_pre <= SMT_INT32_MAX /\
+0- 1 - SMT_INT32_MAX < b_pre /\
+b_pre <= SMT_INT32_MAX /\
+0- 1 - SMT_INT32_MAX < c_pre /\
+c_pre <= SMT_INT32_MAX ->
+(b_pre <= SMT_INT64_MAX /\
+0- 1 - SMT_INT64_MAX <= b_pre))

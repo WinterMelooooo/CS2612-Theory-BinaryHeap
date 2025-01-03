@@ -1,0 +1,5 @@
+rm debug_log.txt
+flex smt_lang.l
+bison -d smt_lang.y
+gcc  -O3 -g -Wno-return-type -Wno-parentheses -fsanitize=address  -ftrapv coq_proofgen.c smt_lang.c smt_lang_flex.c smt_lang.tab.c preprocess.c hashtable.c CDCL.c nelson_oppen.c lia_theory.c congruence.c smt_solver.c Prop_solver.c proof_lang.c CDCL_proof.c smt_preprocess_proof.c uf_proof.c lia_proof.c nelson_oppen_proof.c smt_solver_proof.c smt_proof_checker.c -o smt_parser.out
+ 

@@ -1,0 +1,39 @@
+#include "verification_stdlib.h"
+#include "verification_list.h"
+#include "int_array_def.h"
+#include "sll_def.h"
+
+id : 0
+priority : core(1)
+left : store_array_box(?p, ?n, ?l0) at 0
+right : store_array_box(p, n, ?l1) at 1
+action : left_erase(0);
+         right_erase(1);
+         right_add(l0 == l1);
+
+id : 1
+priority : core(1)
+left : store_array_box(?p, ?n0, ?l0) at 0
+right : data_at(field_addr(p, array_box, n), I32, ?v) at 1
+action : left_erase(0);
+         left_exist_add(a0);
+         left_add(data_at(field_addr(p, array_box, n), I32, n0));
+         left_add(data_at(field_addr(p, array_box, a), PTR(struct array_box), a0));
+         left_add(store_int_array(a0, n0, l0));
+
+id : 2
+priority : core(1)
+left : store_array_box(?p, ?n0, ?l0) at 0
+right : data_at(field_addr(p, array_box, a), PTR(struct array_box), ?v) at 1
+action : left_erase(0);
+         left_exist_add(a0);
+         left_add(data_at(field_addr(p, array_box, n), I32, n0));
+         left_add(data_at(field_addr(p, array_box, a), PTR(struct array_box), a0));
+         left_add(store_int_array(a0, n0, l0));
+
+id : 3
+priority : core(1)
+left : store_array_box_array(?p, ?l0) at 0
+right : data_at(field_addr(p, array_box_array, a) + ?i * sizeof(I32), I32, ?a) at 1
+action : left_erase(0);
+         left_add(store_int_array(field_addr(p, array_box_array, a), 100, l0));

@@ -1,0 +1,2 @@
+TT; Be Pvequal (V_vari 31) (Ez_val 0); Be Pvequal (V_vari 18) (V_vari 17)
+TT; Be Pvequal (V_vari 17) (V_vari 18); Up Pnot (Be Pvequal (V_vari 17) (Ez_val 0)); Up Pnot (Be Pvequal (V_vari 18) (Ez_val 0)); Up Pnot (Be Pvequal (V_vari 17) (Ez_val 0)); Up Pnot (Be Pvequal (V_vari 17) (Ez_val 0)); Up Pnot (Be Pvequal (V_vari 17) (Ez_val 0)); Up Pnot (Be Pvequal (V_vari 17) (Ez_val 0)); Up Pnot (Be Pvequal (V_vari 17) (Ez_val 0)); Up Pnot (Be Pvequal (V_vari 17) (Ez_val 0))

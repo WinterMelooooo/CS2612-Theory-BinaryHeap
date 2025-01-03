@@ -1,0 +1,47 @@
+#include "triple_critical_def.h"
+
+id : 1
+priority : core(1)
+left : InsideCritical(?p1, ?l1) at 0
+right : InsideCritical(?p2, ?l2) at 1
+action : left_erase(0);
+         right_erase(1);
+         right_add(p1 == p2);
+         right_add(l1 == l2);
+
+id : 2
+priority : core(1)
+left : OutsideCritical(?p1, ?l1) at 0
+right : OutsideCritical(?p2, ?l2) at 1
+action : left_erase(0);
+         right_erase(1);
+         right_add(p1 == p2);
+         right_add(l1 == l2);
+
+id : 3
+priority : core(1)
+left : os_inv(?p1, ?l1) at 0
+right : os_inv(?p2, ?l2) at 1
+action : left_erase(0);
+         right_erase(1);
+         right_add(p1 == p2);
+         right_add(l1 == l2);
+
+id : 4
+priority : core(1)
+right : GTrans_C(?q1, ?l1, ?q2, ?l2) at 0
+action : right_erase(0);
+         right_add(q1 == q2);
+         right_add(GTrans_Abs(l1, l2));
+
+id : 5
+priority : core(1)
+left : RTrans_C(?q1, ?l1, ?q2, ?l2) at 0
+action : left_erase(0);
+         left_add(q1 == q2);
+         left_add(RTrans_Abs(l1, l2));
+
+id : 6
+priority : core(1)
+right : GTrans_Abs(?l1, ?l2) at 0
+action : right_erase(0);

@@ -1,0 +1,258 @@
+###################################################################################################
+# Environment setup
+cmake_minimum_required(VERSION 3.16)
+
+project (sac_c_parser)
+
+find_package(BISON)
+find_package(FLEX)
+
+# Generate compile_commands.json
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# for Cmake debug
+set(CMAKE_VERBOSE_MAKEFILE OFF)
+
+# Set the build type(Release/Debug)
+set(BUILD_TYPE "DEBUG")
+
+# Set the project root directory
+set(PROJECT_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+# Add definitions
+set(STRATEGY_FILE_NAME ${PROJECT_ROOT_DIR}/SymExec/Automation/dsl_match/CustomDSLRules.txt)
+
+###################################################################################################
+# Path setup
+# The path to compiler frontend
+SET(FRONTEND_DIR ${PROJECT_ROOT_DIR}/compiler)
+
+# The path to symbolic execution
+SET(SYMEXEC_DIR ${PROJECT_ROOT_DIR}/SymExec)
+
+# The path to the SMT solver
+set(SMT_SOLVER_DIR ${PROJECT_ROOT_DIR}/smt_solver)
+
+# The path to the DSL
+set(DSL_DIR ${PROJECT_ROOT_DIR}/dsl_parser)
+
+###################################################################################################
+# Source setup
+# Flex and bison
+BISON_TARGET(MyParser ${FRONTEND_DIR}/parser.y ${FRONTEND_DIR}/parser.c)
+FLEX_TARGET(MyScanner ${FRONTEND_DIR}/lexer.l  ${FRONTEND_DIR}/lexer.c)
+BISON_TARGET(DSLParser ${DSL_DIR}/parser.y ${DSL_DIR}/parser.c)
+FLEX_TARGET(DSLScanner ${DSL_DIR}/lexer.l  ${DSL_DIR}/lexer.c COMPILE_FLAGS --header-file=${DSL_DIR}/lexer.h DEFINES_FILE ${DSL_DIR}/lexer.h)
+ADD_FLEX_BISON_DEPENDENCY(MyScanner MyParser)
+ADD_FLEX_BISON_DEPENDENCY(DSLScanner DSLParser)
+
+# Get all source files
+file(GLOB FRONTEND_SOURCES "${FRONTEND_DIR}/*.c")
+file(GLOB_RECURSE SYMEXEC_SOURCES "${SYMEXEC_DIR}/*.c")
+file(GLOB_RECURSE SYMEXEC_TEST_SOURCES "${SYMEXEC_DIR}/tests/*.c")
+file(GLOB SMT_SOLVER_SOURCES "${SMT_SOLVER_DIR}/src/*.c")
+file(GLOB DSL_SOURCES "${DSL_DIR}/*.c")
+
+file(GLOB FRONTEND_HEADERS "${FRONTEND_DIR}/*.h")
+file(GLOB_RECURSE SYMEXEC_HEADERS "${SYMEXEC_DIR}/*.h")
+file(GLOB SMT_SOLVER_HEADERS "${SMT_SOLVER_DIR}/src/*.h")
+file(GLOB DSL_HEADERS "${DSL_DIR}/*.h")
+# main.c should not be included in the source list
+list(REMOVE_ITEM FRONTEND_SOURCES "${FRONTEND_DIR}/main.c")
+list(REMOVE_ITEM SYMEXEC_SOURCES "${SYMEXEC_DIR}/main.c")
+list(REMOVE_ITEM SYMEXEC_SOURCES "${SYMEXEC_DIR}/loopinv.c")
+list(REMOVE_ITEM SYMEXEC_SOURCES "${SYMEXEC_DIR}/Solver.c")
+list(REMOVE_ITEM SYMEXEC_SOURCES "${SYMEXEC_DIR}/StrategyCheck.c")
+list(REMOVE_ITEM SYMEXEC_SOURCES ${SYMEXEC_TEST_SOURCES})
+# lexer.c and parser.c should not be included in the source list
+list(REMOVE_ITEM FRONTEND_SOURCES "${FRONTEND_DIR}/lexer.c")
+list(REMOVE_ITEM FRONTEND_SOURCES "${FRONTEND_DIR}/parser.c")
+list(REMOVE_ITEM DSL_SROUCES "${DSL_DIR}/lexer.c")
+list(REMOVE_ITEM DSL_SROUCES "${DSL_DIR}/parser.c")
+
+# Remove SymExec/Automation directory
+# file(GLOB_RECURSE SYMEXEC_AUTOMATION_SOURCES "${SYMEXEC_DIR}/Automation/*.c")
+# list(REMOVE_ITEM SYMEXEC_SOURCES ${SYMEXEC_AUTOMATION_SOURCES})
+
+add_library(sac STATIC
+  ${BISON_MyParser_OUTPUTS}
+  ${FLEX_MyScanner_OUTPUTS}
+  ${BISON_DSLParser_OUTPUTS}
+  ${FLEX_DSLScanner_OUTPUTS}
+  ${FRONTEND_SOURCES}
+  ${SYMEXEC_SOURCES}
+  ${SMT_SOLVER_SOURCES}
+  ${DSL_SOURCES}
+)
+
+add_executable(frontend
+  ${BISON_MyParser_OUTPUT_HEADER}
+  ${FLEX_MyScanner_OUTPUT_HEADER}
+  ${BISON_DSLParser_OUTPUT_HEADER}
+  ${FLEX_DSLScanner_OUTPUT_HEADER}
+  ${FRONTEND_HEADERS}
+  ${SYMEXEC_HEADERS}
+  ${SMT_SOLVER_HEADERS}
+  ${DSL_HEADERS}
+  ${FRONTEND_DIR}/main.c
+)
+
+add_executable(symexec
+  ${BISON_MyParser_OUTPUT_HEADER}
+  ${FLEX_MyScanner_OUTPUT_HEADER}
+  ${BISON_DSLParser_OUTPUT_HEADER}
+  ${FLEX_DSLScanner_OUTPUT_HEADER}
+  ${FRONTEND_HEADERS}
+  ${SYMEXEC_HEADERS}
+  ${SMT_SOLVER_HEADERS}
+  ${DSL_HEADERS}
+  ${SYMEXEC_DIR}/main.c
+)
+
+add_executable(loopinv
+  ${BISON_MyParser_OUTPUT_HEADER}
+  ${FLEX_MyScanner_OUTPUT_HEADER}
+  ${BISON_DSLParser_OUTPUT_HEADER}
+  ${FLEX_DSLScanner_OUTPUT_HEADER}
+  ${FRONTEND_HEADERS}
+  ${SYMEXEC_HEADERS}
+  ${SMT_SOLVER_HEADERS}
+  ${DSL_HEADERS}
+  ${SYMEXEC_DIR}/loopinv.c
+)
+
+add_executable(Solver
+  ${BISON_MyParser_OUTPUT_HEADER}
+  ${FLEX_MyScanner_OUTPUT_HEADER}
+  ${BISON_DSLParser_OUTPUT_HEADER}
+  ${FLEX_DSLScanner_OUTPUT_HEADER}
+  ${FRONTEND_HEADERS}
+  ${SYMEXEC_HEADERS}
+  ${SMT_SOLVER_HEADERS}
+  ${DSL_HEADERS}
+  ${SYMEXEC_DIR}/Solver.c
+)
+
+add_executable(StrategyCheck
+  ${BISON_MyParser_OUTPUT_HEADER}
+  ${FLEX_MyScanner_OUTPUT_HEADER}
+  ${BISON_DSLParser_OUTPUT_HEADER}
+  ${FLEX_DSLScanner_OUTPUT_HEADER}
+  ${FRONTEND_HEADERS}
+  ${SYMEXEC_HEADERS}
+  ${SMT_SOLVER_HEADERS}
+  ${DSL_HEADERS}
+  ${SYMEXEC_DIR}/StrategyCheck.c
+)
+
+target_link_libraries(frontend PUBLIC sac)
+target_link_libraries(symexec PUBLIC sac)
+target_link_libraries(loopinv PUBLIC sac)
+target_link_libraries(Solver PUBLIC sac)
+target_link_libraries(StrategyCheck PUBLIC sac)
+
+###################################################################################################
+# Compiling options
+if (BUILD_TYPE STREQUAL "RELEASE")
+  set(CMAKE_C_FLAGS "-lm -O3 -Wall -Wno-return-type -Wno-parentheses")
+elseif (BUILD_TYPE STREQUAL "DEBUG")
+  set(CMAKE_C_FLAGS "-lm -g -Wall -Wextra -DDEBUG -Wno-return-type -Wno-parentheses")
+endif()
+
+target_compile_options(sac
+  PRIVATE 
+    ${CMAKE_C_FLAGS} 
+    -DPROJECT_ROOT_DIR=${PROJECT_ROOT_DIR}
+    -DGOAL_FILE=${GOAL_FILE}
+    -DPROOF_AUTO_FILE=${PROOF_AUTO_FILE}
+    -DPROOF_MANUAL_FILE=${PROOF_MANUAL_FILE}
+    -DCOQ_LOGIC_PATH=${COQ_LOGIC_PATH}
+    -DSTRATEGY_FILE_NAME=${STRATEGY_FILE_NAME}
+    -DSTRATEGY_FILE=${STRATEGY_FILE}
+    -DSTRATEGY_FOLDER_PATH=${STRATEGY_FOLDER_PATH}
+)
+
+target_compile_options(frontend 
+  PRIVATE 
+    ${CMAKE_C_FLAGS} 
+    -DPROJECT_ROOT_DIR=${PROJECT_ROOT_DIR}
+    -DGOAL_FILE=${GOAL_FILE}
+    -DPROOF_AUTO_FILE=${PROOF_AUTO_FILE}
+    -DPROOF_MANUAL_FILE=${PROOF_MANUAL_FILE}
+    -DCOQ_LOGIC_PATH=${COQ_LOGIC_PATH}
+    -DSTRATEGY_FILE_NAME=${STRATEGY_FILE_NAME}
+    -DSTRATEGY_FILE=${STRATEGY_FILE}
+    -DSTRATEGY_FOLDER_PATH=${STRATEGY_FOLDER_PATH}
+)
+
+target_compile_options(symexec 
+  PRIVATE 
+    ${CMAKE_C_FLAGS}
+    -DPROJECT_ROOT_DIR=${PROJECT_ROOT_DIR}
+    -DGOAL_FILE=${GOAL_FILE}
+    -DPROOF_AUTO_FILE=${PROOF_AUTO_FILE}
+    -DPROOF_MANUAL_FILE=${PROOF_MANUAL_FILE}
+    -DCOQ_LOGIC_PATH=${COQ_LOGIC_PATH}
+    -DSTRATEGY_FILE_NAME=${STRATEGY_FILE_NAME}
+    -DSTRATEGY_FILE=${STRATEGY_FILE}
+    -DSTRATEGY_FOLDER_PATH=${STRATEGY_FOLDER_PATH} 
+)
+
+target_compile_options(loopinv
+  PRIVATE 
+    ${CMAKE_C_FLAGS}
+    -DPROJECT_ROOT_DIR=${PROJECT_ROOT_DIR}
+    -DSTRATEGY_FILE_NAME=${STRATEGY_FILE_NAME}
+    -DSTRATEGY_FILE=${STRATEGY_FILE}
+)
+
+target_compile_options(Solver
+  PRIVATE 
+    ${CMAKE_C_FLAGS}
+    -DPROJECT_ROOT_DIR=${PROJECT_ROOT_DIR}
+    -DSTRATEGY_FILE_NAME=${STRATEGY_FILE_NAME}
+    -DSTRATEGY_FILE=${STRATEGY_FILE}
+)
+
+target_compile_options(StrategyCheck
+  PRIVATE 
+    ${CMAKE_C_FLAGS}
+    -DPROJECT_ROOT_DIR=${PROJECT_ROOT_DIR}
+    -DSTRATEGY_FILE_NAME=${STRATEGY_FILE_NAME}
+    -DSTRATEGY_FILE=${STRATEGY_FILE}
+)
+
+###################################################################################################
+# Run the test
+add_custom_target(frontend_test
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/build/frontend < ${CMAKE_CURRENT_SOURCE_DIR}/input.c
+  DEPENDS frontend
+  WORKING_DIRECTORY ${PROJECT_ROOT_DIR}
+  VERBATIM
+)
+
+add_custom_target(symexec_test
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/build/symexec < ${CMAKE_CURRENT_SOURCE_DIR}/input.c --gen-and-backup
+  DEPENDS symexec
+  WORKING_DIRECTORY ${PROJECT_ROOT_DIR}
+  VERBATIM
+)
+
+add_custom_target(coq_print_test
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/build/symexec -s 5 < ${CMAKE_CURRENT_SOURCE_DIR}/input.c
+  COMMAND coqc -Q ${COQ_PATH} SimpleC ${COQ_PATH}/test/test_annots.v
+  COMMAND coqc -Q ${COQ_PATH} SimpleC ${COQ_PATH}/test/test_witness.v
+  COMMAND coqc -Q ${COQ_PATH} SimpleC ${COQ_PATH}/test/test.v
+  COMMAND coqc -Q ${COQ_PATH} SimpleC ${COQ_PATH}/test/test_soundness.v
+  DEPENDS symexec
+  WORKING_DIRECTORY ${PROJECT_ROOT_DIR}
+  VERBATIM
+)
+
+# Run the code by `make frontend_test/fast` to avoid generating messages like "[100%] Built target frontend_test"
+
+###################################################################################################
+# Debug
+# message("Linker flags: ${CMAKE_EXE_LINKER_FLAGS}")
+# message("Compiler flags: ${CMAKE_C_FLAGS}")
+# message("Build type: ${BUILD_TYPE}")

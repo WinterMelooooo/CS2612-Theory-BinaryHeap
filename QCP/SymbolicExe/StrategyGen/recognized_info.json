@@ -1,0 +1,1 @@
+{"struct_name": "llist_node", "predicate": "llistseg(x, y)", "type": "list", "link_field": ["x->next"], "data_field": [], "nest_preds": []}

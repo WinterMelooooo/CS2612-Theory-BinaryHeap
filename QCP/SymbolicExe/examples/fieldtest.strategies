@@ -1,0 +1,30 @@
+#include "verification_stdlib.h"
+#include "fieldtest_def.h"
+
+id : 1 
+priority : core(0)
+left : IntPairSep(?x,?y,?p : <IntPair>) at 0
+action : left_erase(0);
+         left_add(data_at(x, I32, p.a(1)));
+         left_add(data_at(y, I32, p.b(1)));
+
+id : 2 
+priority : core(0)
+left : IntPairSep2(?x, ?p : <IntPair>) at 0
+action : left_erase(0);
+         left_add(data_at(x, I32, p.a(1)));
+         left_add(data_at(z, I32, p.b(1)));
+
+id : 3 
+priority : core(0)
+left : IntPairSep4(?x, ?p : <Pair0>) at 0
+action : left_erase(0);
+         left_add(data_at(x, I32, p.a2));
+         left_add(data_at(z, I32, p.b2));
+
+id : 4 
+priority : core(0)
+left : IntPairSep3{?A}(?x, ?p : Pair{A}, ?a0, ?b0) at 0
+action : left_erase(0);
+         left_add(data_at(x, I32, p.a1{A}(a0)));
+         left_add(data_at(z, I32, p.b1{A}(b0)));

@@ -1,0 +1,30 @@
+//test Safeexec rules
+//max rule id:30
+
+#include "safeexec_def.h"
+
+#include "verification_stdlib.h"
+
+id : 1
+priority : Pcancel(1)
+left : safeExec{?Sigma, ?A}(?P, ?c, ?X) at 0
+right : safeExec{Sigma, A}(P, c, X) at 1
+        safeExec{Sigma, ?B}(?P2, ?c2, ?X2) at 2
+action : left_erase(0);
+         right_erase(1);
+
+id : 2
+priority : core(2)
+left : safeExec{?Sigma, ?A}(?P, ?c, ?X) at 0
+right : safeExec{Sigma, A}(P, ?c2, ?X) at 1
+action : left_erase(0);
+         right_erase(1);
+         right_add(c == c2);
+
+id : 5
+priority : core(0)
+right : (bind{?Sigma, ?A, ?B}(?c11, ?c12) == bind{Sigma, A, B}(?c21, ?c22)) at 0
+action : right_erase(0);
+         right_add(c11 == c21);
+         right_add(c12 == c22);
+

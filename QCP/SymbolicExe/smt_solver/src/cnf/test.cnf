@@ -1,0 +1,511 @@
+parse success
+unit clause :585
+214 = true
+pick 214 -> unit clause :583
+pick 214 -> unit clause :584
+unit clause :583
+1 = true
+unit clause :584
+213 = true
+pick 213 -> unit clause :581
+pick 213 -> unit clause :582
+unit clause :581
+17 = false
+unit clause :582
+212 = true
+pick 212 -> unit clause :579
+pick 212 -> unit clause :580
+unit clause :579
+35 = true
+pick 35 -> unit clause :80
+pick 35 -> unit clause :81
+unit clause :580
+211 = true
+pick 211 -> unit clause :577
+pick 211 -> unit clause :578
+unit clause :80
+33 = false
+pick 33 -> unit clause :139
+unit clause :81
+34 = false
+unit clause :139
+55 = false
+unit clause :577
+60 = true
+pick 60 -> unit clause :152
+pick 60 -> unit clause :153
+unit clause :578
+210 = true
+pick 210 -> unit clause :575
+pick 210 -> unit clause :576
+unit clause :152
+58 = false
+pick 58 -> unit clause :235
+unit clause :153
+59 = false
+unit clause :235
+88 = false
+unit clause :575
+93 = true
+pick 93 -> unit clause :248
+pick 93 -> unit clause :249
+unit clause :576
+209 = true
+pick 209 -> unit clause :573
+pick 209 -> unit clause :574
+unit clause :248
+91 = false
+pick 91 -> unit clause :340
+pick 91 -> unit clause :461
+unit clause :249
+92 = false
+unit clause :340
+124 = false
+unit clause :461
+164 = false
+pick 164 -> unit clause :458
+unit clause :573
+126 = true
+pick 126 -> unit clause :345
+unit clause :574
+208 = true
+pick 208 -> unit clause :571
+pick 208 -> unit clause :572
+unit clause :345
+125 = false
+pick 125 -> unit clause :343
+unit clause :458
+165 = false
+unit clause :571
+156 = true
+pick 156 -> unit clause :431
+pick 156 -> unit clause :432
+unit clause :572
+207 = true
+pick 207 -> unit clause :569
+pick 207 -> unit clause :570
+unit clause :343
+123 = true
+pick 123 -> unit clause :337
+pick 123 -> unit clause :338
+pick 123 -> unit clause :385
+unit clause :385
+130 = false
+pick 130 -> unit clause :382
+pick 130 -> unit clause :400
+unit clause :400
+145 = false
+unit clause :431
+154 = false
+unit clause :432
+155 = false
+unit clause :569
+179 = false
+unit clause :570
+206 = true
+pick 206 -> unit clause :567
+pick 206 -> unit clause :568
+unit clause :337
+121 = false
+pick 121 -> unit clause :348
+unit clause :338
+122 = false
+unit clause :348
+127 = true
+pick 127 -> unit clause :430
+unit clause :382
+139 = false
+unit clause :430
+153 = true
+pick 153 -> unit clause :424
+pick 153 -> unit clause :425
+unit clause :567
+195 = true
+pick 195 -> unit clause :542
+pick 195 -> unit clause :543
+unit clause :568
+205 = true
+pick 205 -> unit clause :565
+pick 205 -> unit clause :566
+unit clause :424
+151 = false
+pick 151 -> unit clause :435
+unit clause :425
+152 = false
+unit clause :435
+157 = true
+pick 157 -> unit clause :493
+unit clause :493
+177 = false
+pick 177 -> unit clause :498
+unit clause :498
+178 = true
+pick 178 -> unit clause :497
+unit clause :542
+193 = false
+unit clause :543
+194 = false
+unit clause :565
+203 = false
+unit clause :566
+204 = false
+unit clause :497
+176 = false
+decide 2 = true
+unit clause :3
+7 = true
+pick 7 -> unit clause :11
+pick 7 -> unit clause :28
+unit clause :11
+10 = false
+unit clause :28
+16 = false
+pick 16 -> unit clause :30
+unit clause :30
+15 = true
+pick 15 -> unit clause :26
+pick 15 -> unit clause :70
+unit clause :70
+31 = false
+unit clause :115
+47 = false
+unit clause :26
+14 = true
+pick 14 -> unit clause :22
+pick 14 -> unit clause :23
+unit clause :22
+12 = false
+unit clause :23
+13 = false
+decide 3 = true
+unit clause :6
+8 = true
+pick 8 -> unit clause :18
+unit clause :9
+9 = true
+pick 9 -> unit clause :13
+pick 9 -> unit clause :37
+unit clause :13
+11 = false
+unit clause :18
+unit clause :36
+19 = true
+pick 19 -> unit clause :44
+pick 19 -> unit clause :61
+unit clause :37
+20 = false
+pick 20 -> unit clause :52
+unit clause :44
+22 = false
+unit clause :52
+25 = false
+unit clause :61
+28 = false
+unit clause :158
+5 = true
+pick 5 -> unit clause :84
+pick 5 -> unit clause :159
+pick 5 -> unit clause :258
+pick 5 -> unit clause :357
+pick 5 -> unit clause :469
+unit clause :159
+62 = true
+pick 62 -> unit clause :176
+pick 62 -> unit clause :229
+unit clause :176
+68 = false
+unit clause :229
+86 = false
+unit clause :258
+96 = true
+pick 96 -> unit clause :280
+pick 96 -> unit clause :316
+unit clause :280
+104 = false
+unit clause :316
+116 = false
+unit clause :357
+4 = false
+pick 4 -> unit clause :32
+pick 4 -> unit clause :86
+pick 4 -> unit clause :164
+pick 4 -> unit clause :295
+pick 4 -> unit clause :436
+unit clause :436
+158 = false
+pick 158 -> unit clause :448
+pick 158 -> unit clause :484
+unit clause :448
+162 = false
+pick 162 -> unit clause :456
+pick 162 -> unit clause :510
+unit clause :456
+163 = true
+pick 163 -> unit clause :452
+unit clause :469
+169 = false
+unit clause :484
+174 = false
+pick 174 -> unit clause :492
+pick 174 -> unit clause :501
+unit clause :492
+175 = true
+pick 175 -> unit clause :488
+unit clause :501
+180 = true
+pick 180 -> unit clause :541
+unit clause :510
+183 = true
+pick 183 -> unit clause :512
+unit clause :512
+184 = false
+unit clause :541
+192 = true
+pick 192 -> unit clause :535
+pick 192 -> unit clause :536
+unit clause :32
+18 = false
+pick 18 -> unit clause :40
+pick 18 -> unit clause :79
+unit clause :40
+21 = false
+pick 21 -> unit clause :48
+unit clause :48
+23 = true
+pick 23 -> unit clause :51
+unit clause :51
+24 = true
+pick 24 -> unit clause :55
+pick 24 -> unit clause :92
+unit clause :55
+26 = false
+pick 26 -> unit clause :59
+unit clause :59
+27 = false
+pick 27 -> unit clause :66
+unit clause :66
+29 = true
+pick 29 -> unit clause :69
+unit clause :69
+30 = true
+pick 30 -> unit clause :73
+pick 30 -> unit clause :89
+unit clause :73
+32 = false
+conflict_cl: 78
+
+value state:
+x1 : dl = 0, ancient = 583
+x2 : dl = 1, ancient = 0
+x3 : dl = 2, ancient = 0
+x4 : dl = 2, ancient = 357
+x5 : dl = 2, ancient = 158
+x6 : dl = -1, ancient = 0
+x7 : dl = 1, ancient = 3
+x8 : dl = 2, ancient = 6
+x9 : dl = 2, ancient = 9
+x10 : dl = 1, ancient = 11
+x11 : dl = 2, ancient = 13
+x12 : dl = 1, ancient = 22 
+x13 : dl = 1, ancient = 23
+x14 : dl = 1, ancient = 26
+x15 : dl = 1, ancient = 30
+x16 : dl = 1, ancient = 28
+x17 : dl = 0, ancient = 581
+x18 : dl = 2, ancient = 32
+x19 : dl = 2, ancient = 36
+x20 : dl = 2, ancient = 37
+x21 : dl = 2, ancient = 40
+x22 : dl = 2, ancient = 44
+x23 : dl = 2, ancient = 48
+x24 : dl = 2, ancient = 51
+x25 : dl = 2, ancient = 52
+x26 : dl = 2, ancient = 55
+x27 : dl = 2, ancient = 59
+x28 : dl = 2, ancient = 61
+x29 : dl = 2, ancient = 66
+x30 : dl = 2, ancient = 69
+x31 : dl = 1, ancient = 70
+x32 : dl = 2, ancient = 73
+x33 : dl = 0, ancient = 80
+x34 : dl = 0, ancient = 81
+x35 : dl = 0, ancient = 579
+x36 : dl = -1, ancient = 0
+x37 : dl = -1, ancient = 0
+x38 : dl = -1, ancient = 0
+x39 : dl = -1, ancient = 0
+x40 : dl = -1, ancient = 0
+x41 : dl = -1, ancient = 0
+x42 : dl = -1, ancient = 0
+x43 : dl = -1, ancient = 0
+x44 : dl = -1, ancient = 0
+x45 : dl = -1, ancient = 0
+x46 : dl = -1, ancient = 0
+x47 : dl = 1, ancient = 115
+x48 : dl = -1, ancient = 0
+x49 : dl = -1, ancient = 0
+x50 : dl = -1, ancient = 0
+x51 : dl = -1, ancient = 0
+x52 : dl = -1, ancient = 0
+x53 : dl = -1, ancient = 0
+x54 : dl = -1, ancient = 0
+x55 : dl = 0, ancient = 139
+x56 : dl = -1, ancient = 0
+x57 : dl = -1, ancient = 0
+x58 : dl = 0, ancient = 152
+x59 : dl = 0, ancient = 153
+x60 : dl = 0, ancient = 577
+x61 : dl = -1, ancient = 0
+x62 : dl = 2, ancient = 159
+x63 : dl = -1, ancient = 0
+x64 : dl = -1, ancient = 0
+x65 : dl = -1, ancient = 0
+x66 : dl = -1, ancient = 0
+x67 : dl = -1, ancient = 0
+x68 : dl = 2, ancient = 176
+x69 : dl = -1, ancient = 0
+x70 : dl = -1, ancient = 0
+x71 : dl = -1, ancient = 0
+x72 : dl = -1, ancient = 0
+x73 : dl = -1, ancient = 0
+x74 : dl = -1, ancient = 0
+x75 : dl = -1, ancient = 0
+x76 : dl = -1, ancient = 0
+x77 : dl = -1, ancient = 0
+x78 : dl = -1, ancient = 0
+x79 : dl = -1, ancient = 0
+x80 : dl = -1, ancient = 0
+x81 : dl = -1, ancient = 0
+x82 : dl = -1, ancient = 0
+x83 : dl = -1, ancient = 0
+x84 : dl = -1, ancient = 0
+x85 : dl = -1, ancient = 0
+x86 : dl = 2, ancient = 229
+x87 : dl = -1, ancient = 0
+x88 : dl = 0, ancient = 235
+x89 : dl = -1, ancient = 0
+x90 : dl = -1, ancient = 0
+x91 : dl = 0, ancient = 248
+x92 : dl = 0, ancient = 249
+x93 : dl = 0, ancient = 575
+x94 : dl = -1, ancient = 0
+x95 : dl = -1, ancient = 0
+x96 : dl = 2, ancient = 258
+x97 : dl = -1, ancient = 0
+x98 : dl = -1, ancient = 0
+x99 : dl = -1, ancient = 0
+x100 : dl = -1, ancient = 0
+x101 : dl = -1, ancient = 0
+x102 : dl = -1, ancient = 0
+x103 : dl = -1, ancient = 0
+x104 : dl = 2, ancient = 280
+x105 : dl = -1, ancient = 0
+x106 : dl = -1, ancient = 0
+x107 : dl = -1, ancient = 0
+x108 : dl = -1, ancient = 0
+x109 : dl = -1, ancient = 0
+x110 : dl = -1, ancient = 0
+x111 : dl = -1, ancient = 0
+x112 : dl = -1, ancient = 0
+x113 : dl = -1, ancient = 0
+x114 : dl = -1, ancient = 0
+x115 : dl = -1, ancient = 0
+x116 : dl = 2, ancient = 316
+x117 : dl = -1, ancient = 0
+x118 : dl = -1, ancient = 0
+x119 : dl = -1, ancient = 0
+x120 : dl = -1, ancient = 0
+x121 : dl = 0, ancient = 337
+x122 : dl = 0, ancient = 338
+x123 : dl = 0, ancient = 343
+x124 : dl = 0, ancient = 340
+x125 : dl = 0, ancient = 345
+x126 : dl = 0, ancient = 573
+x127 : dl = 0, ancient = 348
+x128 : dl = -1, ancient = 0
+x129 : dl = -1, ancient = 0
+x130 : dl = 0, ancient = 385
+x131 : dl = -1, ancient = 0
+x132 : dl = -1, ancient = 0
+x133 : dl = -1, ancient = 0
+x134 : dl = -1, ancient = 0
+x135 : dl = -1, ancient = 0
+x136 : dl = -1, ancient = 0
+x137 : dl = -1, ancient = 0
+x138 : dl = -1, ancient = 0
+x139 : dl = 0, ancient = 382
+x140 : dl = -1, ancient = 0
+x141 : dl = -1, ancient = 0
+x142 : dl = -1, ancient = 0
+x143 : dl = -1, ancient = 0
+x144 : dl = -1, ancient = 0
+x145 : dl = 0, ancient = 400
+x146 : dl = -1, ancient = 0 
+x147 : dl = -1, ancient = 0
+x148 : dl = -1, ancient = 0
+x149 : dl = -1, ancient = 0
+x150 : dl = -1, ancient = 0
+x151 : dl = 0, ancient = 424
+x152 : dl = 0, ancient = 425
+x153 : dl = 0, ancient = 430
+x154 : dl = 0, ancient = 431
+x155 : dl = 0, ancient = 432
+x156 : dl = 0, ancient = 571
+x157 : dl = 0, ancient = 435
+x158 : dl = 2, ancient = 436
+x159 : dl = -1, ancient = 0
+x160 : dl = -1, ancient = 0
+x161 : dl = -1, ancient = 0
+x162 : dl = 2, ancient = 448
+x163 : dl = 2, ancient = 456
+x164 : dl = 0, ancient = 461
+x165 : dl = 0, ancient = 458
+x166 : dl = -1, ancient = 0
+x167 : dl = -1, ancient = 0
+x168 : dl = -1, ancient = 0
+x169 : dl = 2, ancient = 469
+x170 : dl = -1, ancient = 0
+x171 : dl = -1, ancient = 0
+x172 : dl = -1, ancient = 0
+x173 : dl = -1, ancient = 0
+x174 : dl = 2, ancient = 484
+x175 : dl = 2, ancient = 492
+x176 : dl = 0, ancient = 497
+x177 : dl = 0, ancient = 493
+x178 : dl = 0, ancient = 498
+x179 : dl = 0, ancient = 569
+x180 : dl = 2, ancient = 501
+x181 : dl = -1, ancient = 0
+x182 : dl = -1, ancient = 0
+x183 : dl = 2, ancient = 510
+x184 : dl = 2, ancient = 512
+x185 : dl = -1, ancient = 0
+x186 : dl = -1, ancient = 0
+x187 : dl = -1, ancient = 0
+x188 : dl = -1, ancient = 0
+x189 : dl = -1, ancient = 0
+x190 : dl = -1, ancient = 0
+x191 : dl = -1, ancient = 0
+x192 : dl = 2, ancient = 541
+x193 : dl = 0, ancient = 542
+x194 : dl = 0, ancient = 543
+x195 : dl = 0, ancient = 567
+x196 : dl = -1, ancient = 0
+x197 : dl = -1, ancient = 0
+x198 : dl = -1, ancient = 0
+x199 : dl = -1, ancient = 0
+x200 : dl = -1, ancient = 0
+x201 : dl = -1, ancient = 0
+x202 : dl = -1, ancient = 0
+x203 : dl = 0, ancient = 565
+x204 : dl = 0, ancient = 566
+x205 : dl = 0, ancient = 568
+x206 : dl = 0, ancient = 570
+x207 : dl = 0, ancient = 572
+x208 : dl = 0, ancient = 574
+x209 : dl = 0, ancient = 576
+x210 : dl = 0, ancient = 578
+x211 : dl = 0, ancient = 580
+x212 : dl = 0, ancient = 582
+x213 : dl = 0, ancient = 584
+x214 : dl = 0, ancient = 585

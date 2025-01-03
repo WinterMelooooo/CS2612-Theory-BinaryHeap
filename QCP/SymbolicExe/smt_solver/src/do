@@ -1,0 +1,2 @@
+gcc -c hashtable.c congruence.c proof.c CDCL.c Prop_solver.c lia_theory.c
+

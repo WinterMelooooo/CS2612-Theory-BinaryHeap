@@ -1,0 +1,5 @@
+Require Import critical_sll_strategy_goal critical_sll_strategy_proof.
+
+Module critical_sll_Strategy_Correctness : critical_sll_Strategy_Correct.
+  Include critical_sll_strategy_proof.
+End critical_sll_Strategy_Correctness.

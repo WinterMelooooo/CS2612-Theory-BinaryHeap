@@ -1,0 +1,5 @@
+From SimpleC.EE.concur_guarded_critical Require Import guarded_critical_strategy_goal guarded_critical_strategy_proof.
+
+Module guarded_critical_Strategy_Correctness : guarded_critical_Strategy_Correct.
+  Include guarded_critical_strategy_proof.
+End guarded_critical_Strategy_Correctness.

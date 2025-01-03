@@ -1,0 +1,109 @@
+#include "verification_list.h"
+#include "verification_stdlib.h"
+#include "list_list_data2_nest0.h"
+
+id : 1
+priority : core(0)
+left : listrep(NULL) at 0
+action : left_erase(0);
+
+id : 2
+priority : core(0)
+right : listrep(NULL) at 0
+action : right_erase(0);
+
+id : 3
+priority : core(0)
+left : (?p : Z == NULL || NULL == ?p : Z) at 0
+right : listrep(p) at 1
+action : right_erase(1);
+
+id : 4
+priority : core(0)
+left : listrep(?p : Z) at 0
+       (p == NULL || NULL == p) at 1
+action : left_erase(0);
+
+id : 5
+priority : core(1)
+left : listrep(?p : Z) at 0
+right : listrep(p) at 1
+action : left_erase(0);
+         right_erase(1);
+
+id : 6
+priority : core(4)
+left : listrep(?p : Z) at 0
+       (p != NULL || NULL != p) at 1
+right : (data_at(field_addr(p, list, tail), PTR(struct list), ?q : Z) || data_at(field_addr(p, list, head), I32, ?q : Z) || data_at(field_addr(p, list, data), I32, ?q : Z)) at 2
+action : left_erase(0);
+         left_exist_add(a : Z);
+         left_add(data_at(field_addr(p, list, tail), PTR(struct list), a));
+         left_add(listrep(a));
+         left_exist_add(b : Z);
+         left_add(data_at(field_addr(p, list, head), I32, b));
+         left_exist_add(c : Z);
+         left_add(data_at(field_addr(p, list, data), I32, c));
+
+id : 7
+priority : core(4)
+left : (?p : Z != NULL || NULL != ?p : Z) at 0
+right : listrep(p) at 1
+action : right_erase(1);
+         right_exist_add(a : Z);
+         right_add(data_at(field_addr(p, list, tail), PTR(struct list), a));
+         right_add(listrep(a));
+         right_exist_add(b : Z);
+         right_add(data_at(field_addr(p, list, head), I32, b));
+         right_exist_add(c : Z);
+         right_add(data_at(field_addr(p, list, data), I32, c));
+
+id : 8
+priority : core(3)
+left : lseg(?p : Z, ?q : Z) at 0
+right : listrep(p) at 1 
+action : left_erase(0);
+         right_erase(1);
+         right_add(listrep(q));
+
+id : 9
+priority : core(4)
+left : (data_at(field_addr(?p, list, tail), PTR(struct list), ?q : Z) || data_at(field_addr(?p, list, head), I32, ?q : Z) || data_at(field_addr(?p, list, data), I32, ?q : Z)) at 0
+       (p != NULL || NULL != p) at 1
+right : listrep(p) at 2 
+action : right_erase(2);
+         right_exist_add(a : Z);
+         right_add(data_at(field_addr(p, list, tail), PTR(struct list), a));
+         right_add(listrep(a));
+         right_exist_add(b : Z);
+         right_add(data_at(field_addr(p, list, head), I32, b));
+         right_exist_add(c : Z);
+         right_add(data_at(field_addr(p, list, data), I32, c));
+
+id : 10
+priority : core(0)
+right : lseg(?p : Z, p) at 0
+        listrep(p) at 1
+action : right_erase(0);
+
+id : 11
+priority : core(0)
+right : lseg(?p : Z, p) at 0
+        (data_at(field_addr(p, list, tail), PTR(struct list), ?q : Z) || data_at(field_addr(p, list, head), I32, ?q : Z) || data_at(field_addr(p, list, data), I32, ?q : Z)) at 1
+action : right_erase(0);
+
+id : 12
+priority : core(3)
+left : lseg(?p : Z, ?q) at 0
+       data_at(field_addr(q, list, tail), PTR(struct list), ?z : Z) at 1
+       (q != NULL || NULL != q) at 2
+right : lseg(p, z) at 3
+action : left_erase(0);
+         left_erase(1);
+         right_erase(3);
+         right_exist_add(a : Z);
+         right_add(data_at(field_addr(q, list, head), I32, a));
+         right_exist_add(b : Z);
+         right_add(data_at(field_addr(q, list, data), I32, b));
+
+

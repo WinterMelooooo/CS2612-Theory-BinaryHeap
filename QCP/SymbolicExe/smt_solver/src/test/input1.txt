@@ -1,0 +1,2 @@
+Up Pnot (Be Pvequal (V_vari 1) (V_vari 2))
+Up Pnot (Be Pvequal (V_vari 1) (V_vari 3)) ; Be Pvequal (V_vari 3) (V_vari 2)

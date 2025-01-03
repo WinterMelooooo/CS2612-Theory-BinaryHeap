@@ -1,0 +1,5 @@
+From SimpleC.EE.concur_nested_critical Require Import nested_critical_strategy_goal nested_critical_strategy_proof.
+
+Module nested_critical_Strategy_Correctness : nested_critical_Strategy_Correct.
+  Include nested_critical_strategy_proof.
+End nested_critical_Strategy_Correctness.

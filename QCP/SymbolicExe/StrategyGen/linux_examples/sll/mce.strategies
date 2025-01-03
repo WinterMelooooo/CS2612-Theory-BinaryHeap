@@ -1,0 +1,34 @@
+
+id : 0
+priority : core(4)
+left : mce_llistrep(?x) at 0
+right : mce_llistrep(?y) at 1
+left : (x == y || y == x) at 2
+action : left_erase(0);
+         right_erase(1);
+
+id : 1
+priority : core(2)
+right : mce_llistrep(?y) at 0
+       mce_lseg(?x, y) at 1
+left : (x == y || y == x) at 2
+action : right_erase(1);
+
+
+id : 2
+priority : core(2)
+left : mce_llistrep(field_addr(?l, mce_evt_llist, llnode)) at 0 
+       (field_addr(l, mce_evt_llist, llnode) != 0 || 0 != field_addr(l, mce_evt_llist,llnode)) at 1
+right : data_at(field_addr(l, mce_evt_llist, msg), PTR(I8), ?v) at 2
+action : left_erase(0);
+         left_exist_add(l1 : Z);
+         left_exist_add(v : Z);
+         left_add(mce_llistrep(l1));
+         left_add(data_at(field_addr(l, mce_evt_llist, msg), PTR(I8), v));
+         left_add(data_at(field_addr(field_addr(l, mce_evt_llist, llnode), llist_node, next), PTR(struct llist_node), l1));
+         left_add(store_char_array(v));
+
+/*@ &(l->llnode) != 0 && mce_llistrep(&(l->llnode))
+        which implies
+        exists l',store_char_array(l -> msg) &&  (&(l->llnode)) -> next == l' && mce_llistrep(l')    
+    */

@@ -1,0 +1,1 @@
+Codes in this folder are not meaningful or even not correct C programs. They are only used to test the corrctness of symbolic execution.

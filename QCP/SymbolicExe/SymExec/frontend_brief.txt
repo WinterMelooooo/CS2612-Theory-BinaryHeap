@@ -1,0 +1,89 @@
+# user assertion -> internal assertion
+
+  1. 转化到disjunction of (props, seps)
+    note: not与forall下的assertion不能包含sepcon且不会被改变
+    1. alpha-rename
+    2. 提升or，对于and和sepcon为笛卡尔积，对于or和exists为append（得到disj of assertions）
+    3. 提升exists（得到disj of existential assertions）
+    4. 分离每个existential assertion中的prop, sep
+       首先 lift_and(a1 /\ a2) = lift_and a1 ++ lift_and a2; lift_and a = [a]
+       假设所得的最后一个assertion A为sep，前面的所有assertion（可能为空list）为props
+       对A做lift_sep（类似lift_and）得到seps
+
+  2. 将C表达式转为逻辑表达式，同时生成所需的Local与Data_at（参数：是否允许addressable var)
+    - 对于变量x，如果它是逻辑变量：直接返回对应的V_vari 
+               如果是程序变量，且没有生成过Local，则生成Temp x xp，且
+                 若允许addressable var则生成Data_at xv xp，返回xv
+                 否则返回xp
+               如果是程序变量，且生成过Temp x xp，且
+                 若允许addressable var则则检查是否存在Data_at _ xp，存在则返回，不存在则如上一条
+                 否则返回xp
+        exist -> hashmap 
+      // hashmap: var_name -> logic_expr (is_id?)
+      // hashmap: if exists Data_at xv xp, add xp -> xv 
+      // hashmap unsigned char 自然溢出？
+      // linkedhashmap: 输出的时候只需要输出非空的位置
+    - 对于&x，如果不允许addressable var则报错，否则
+        如果它是逻辑变量，则报错
+        如果是程序变量，且没有生成过Local，则生成Temp x xp，返回xp
+        如果是程序变量，且生成过Temp x xp，则返回xp
+    - 对于&(e.member)
+        将表达式&e转为逻辑表达式e'
+        返回field_addr(e', member)
+    - 对于&(e->member)
+        将表达式e转为逻辑表达式e'
+        返回field_addr(e', member)
+    - 对于&*e，返回e转成的逻辑表达式
+    - 其它情况的&e为非法表达式，报错
+    - 对于*e
+        将表达式e转为逻辑表达式e'
+        寻找是否存在Data_at _ e'，存在则返回，不存在则生成
+    - 对于e->member
+        将表达式e转为逻辑表达式e'
+        寻找是否存在Data_at _ field_addr(e', member)，存在则返回，不存在则生成
+    - 对于e.member
+        返回(&e)->member转成的逻辑表达式
+
+# addressable variable & function spec
+
+  在处理funcspec时使用不允许addressable var，在进入函数体时转化为addressable var
+  (生成额外的Data_at）
+
+# internal assertion -> user assertion
+
+  尝试revert user assertion -> internal assertion的第二步，assertion的结构变化不考虑恢复
+
+  1. 先将所有的Data_at (V_vari id) _ 找出，先不转换（id出现在exists中）
+  2. 再将所有的Data_at _ (V_vari id), Undef_Data_at (V_vari id) 找出，也先不转换（id出现在exists中）
+
+  3. 转换剩下的props, seps，对于逻辑变量v：
+     1. 寻找是否有Temp x (V_vari v)，有则将v转为&x
+     2. 寻找是否有Data_at (V_vari v) ptr，有则先将ptr转为expression e_ptr，之后v转为*e_ptr
+     3. 逻辑变量v不做转换，依然为逻辑变量v
+     4. 在最后化简得到的C表达式为v最终的转换结果
+     5. 记录此次转换结果，下次遇到同样的逻辑变量v时直接使用
+
+  4. 删去已经用过的Data_at (V_vari _) _，且之后转换逻辑变量时不再寻找Data_at（已记录的不受影响）
+  5. 对于未转换的Data_at v (V_vari p)，寻找是否有Temp x (V_vari p)
+        有，转换v为e且生成prop: x == e
+        否则则生成Data_at v (V_vari p)转换后的sep
+     对于未转换的Undef_Data_at (V_vari p)，寻找是否有Temp x (V_vari p)
+        有，不生成新的assertion
+        否则则生成Undef_Data_at (V_vari p)转换后的sep
+  6. 其它未转换的sep直接转换
+  7. 对于所有还没用过的Temp x p，将p转为e并生成prop: &x == e
+  8. 构造assertion A = prop1 && prop2 && ... && propn && sep1 * sep2 * ... * sepn
+  9. 对于原本的所有exists变量，删去不再在A中自由出现的，其余作为exists变量添加到A上返回
+
+  在context为not addressable时，流程做如下改变：
+  - 删去步骤2
+  - 在步骤3中找到Temp时将v转为x而不是&x
+  - 删去步骤5
+  - 在步骤7中生成的prop变为x == e
+
+  C表达式化简规则
+  - 对于&e，先化简e为e1，若e1为*e2则返回e2，否则返回&e1
+  - 对于*e，先化简e为e1，若e1为&e2则返回e2，否则返回*e1
+  - 对于e.m，先化简e为e1，若e1为*e2则返回e2->m，否则返回e1.m
+  - 对于e->m，先化简e为e1，若e1为&e2则返回e2.m，否则返回e1->m
+  - 其余表达式不做处理或简单递归
