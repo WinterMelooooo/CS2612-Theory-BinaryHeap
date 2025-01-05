@@ -93,6 +93,19 @@ Definition bintree_connected {V E: Type} (bt: BinTree V E): Prop :=
 Definition Abs (h: BinTree Z Z) (X: Z -> Prop): Prop :=
   X == h.(vvalid).
 
+Record PartialHeap (h: BinTree Z Z): Prop := {
+  (* 最多存在一个节点v违反堆的性质 *)
+  exists_violation: forall v1 v2: Z,
+    (* 如果v1和v2都违反堆的性质 *)
+    (h.(vvalid) v1 /\ 
+      exists y1: Z, (BinaryTree.step_l h v1 y1 \/ BinaryTree.step_r h v1 y1) /\ (v1 > y1)%Z) ->
+    (h.(vvalid) v2 /\ 
+      exists y2: Z, (BinaryTree.step_l h v2 y2 \/ BinaryTree.step_r h v2 y2) /\ (v2 > y2)%Z) ->
+    (* 那么v1和v2必须是同一个节点 *)
+    v1 = v2;
+}.
+  
+
 Record StrictPartialHeap (h: BinTree Z Z): Prop := {
   (* 存在一个节点v违反堆的性质 *)
   exists_violation_strict: exists v: Z,
@@ -104,18 +117,6 @@ Record StrictPartialHeap (h: BinTree Z Z): Prop := {
       x <> v -> 
       (BinaryTree.step_l h x y \/ BinaryTree.step_r h x y) -> 
       (x <= y)%Z);
-}.
-
-Record PartialHeap (h: BinTree Z Z): Prop := {
-  (* 最多存在一个节点v违反堆的性质 *)
-  exists_violation: forall v1 v2: Z,
-    (* 如果v1和v2都违反堆的性质 *)
-    (h.(vvalid) v1 /\ 
-      exists y1: Z, (BinaryTree.step_l h v1 y1 \/ BinaryTree.step_r h v1 y1) /\ (v1 > y1)%Z) ->
-    (h.(vvalid) v2 /\ 
-      exists y2: Z, (BinaryTree.step_l h v2 y2 \/ BinaryTree.step_r h v2 y2) /\ (v2 > y2)%Z) ->
-    (* 那么v1和v2必须是同一个节点 *)
-    v1 = v2;
 }.
 
 Record StrictPartialHeap1 (h: BinTree Z Z): Prop := {
@@ -234,8 +235,7 @@ Proof.
 
 Definition Root (h: BinTree Z Z) (v: Z): Prop :=
   h.(vvalid) v /\
-  (~ exists y, BinaryTree.step_l h v y) /\
-  (~ exists y, BinaryTree.step_r h v y).
+  (~ exists y, BinaryTree.step_u h v y).
 
 Require Import PL.Monad.
 Require Import PL.StateRelMonad.
