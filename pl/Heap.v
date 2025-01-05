@@ -4,6 +4,7 @@ Require Import Coq.Classes.RelationClasses.
 From SetsClass Require Import SetsClass.
 Import SetsNotation.
 Local Open Scope sets_scope.
+Require Import Coq.Logic.Classical.
 
 (*********************************************************)
 (**                                                      *)
@@ -170,11 +171,101 @@ Record StrictPartialHeap3 (h: BinTree Z Z): Prop := {
       (x <= y)%Z);
 }.
 
+
 Theorem strict_partial_heap_classification:
   forall h: BinTree Z Z,
     StrictPartialHeap h -> StrictPartialHeap1 h \/ StrictPartialHeap2 h \/ StrictPartialHeap3 h.
 Proof.
-  Admitted.
+    intros.
+    
+    (* 分解 StrictPartialHeap 的假设 *)
+    destruct H as [v [Hv_valid [ [y [Hstep Hcomp] ] Hothers ] ] ].
+    
+    (* Hstep: BinaryTree.step_l h v y \/ BinaryTree.step_r h v y
+       Hcomp: v > y *)
+    destruct v.
+    destruct H.
+    destruct H0.
+    destruct H0.
+    destruct H0.
+    destruct H0.
+    (*情况1：左儿子比父亲小，即StrictPartialHeap1或StrictPartialHeap2*)
+    - destruct (classic (exists k, BinaryTree.step_r h x k /\ (x > k)%Z)) 
+    as [ [k [Hstep_r_e_r Hv_gt_e_r]] | Hno_right_violation ].
+      (*StrictPartialHeap1的情况*)
+      + left.
+      split.
+      exists x.
+      split.
+          ++ apply H.
+          ++ split.
+              +++ exists x0, k.
+                  tauto.
+              +++ apply H1.
+      (*StrictPartialHeap3的情况*)
+      + right. left.
+        split.
+        exists x.
+        split.
+            ++ apply H.
+            ++ split.
+                +++ exists x0.
+                    split.
+                    ++++ apply H0.
+                    ++++ split.
+                      +++++ apply H2.
+                      +++++
+                        intros.
+                        assert (Hno_right_violation' : forall k : Z, ~ (BinaryTree.step_r h x k /\ (x > k)%Z)).
+                        {
+                          intros k [Hrl Hgt].
+                          apply Hno_right_violation.
+                          exists k. split; assumption.
+                        }
+                        specialize (Hno_right_violation' yr).
+                        tauto.
+
+                +++ apply H1.
+    (*情况2：右儿子比父亲小，即StrictPartialHeap1或StrictPartialHeap3*)
+    - destruct (classic (exists k, BinaryTree.step_l h x k /\ (x > k)%Z)) 
+    as [ [k [Hstep_r_e_r Hv_gt_e_r]] | Hno_left_violation ].
+      (*StrictPartialHeap1的情况*)
+      + left.
+      split.
+      exists x.
+      split.
+          ++ apply H.
+          ++ split.
+              +++ exists k, x0.
+                  tauto.
+              +++ apply H1.
+      (*StrictPartialHeap3的情况*)
+      + right. right.
+        split.
+        exists x.
+        split.
+            ++ apply H.
+            ++ split.
+                +++ exists x0.
+                    split.
+                    ++++ apply H0.
+                    ++++ split.
+                      +++++ apply H2.
+                      +++++
+                        intros.
+                        assert (Hno_left_violation' : forall k : Z, ~ (BinaryTree.step_l h x k /\ (x > k)%Z)).
+                        {
+                          intros k [Hrl Hgt].
+                          apply Hno_left_violation.
+                          exists k. split; assumption.
+                        }
+                        specialize (Hno_left_violation' yl).
+                        tauto.
+
+                +++ apply H1.
+
+Qed.
+
 
 Theorem partial_heap_classification:
   forall h: BinTree Z Z,
