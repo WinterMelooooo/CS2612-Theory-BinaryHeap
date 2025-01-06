@@ -5,7 +5,7 @@ From SetsClass Require Import SetsClass.
 Import SetsNotation.
 Local Open Scope sets_scope.
 Require Import Coq.Logic.Classical.
-
+Require Import Coq.ZArith.ZArith_dec.
 (*********************************************************)
 (**                                                      *)
 (** Binary Tree                                          *)
@@ -271,7 +271,29 @@ Theorem partial_heap_classification:
   forall h: BinTree Z Z,
     PartialHeap h -> StrictPartialHeap h \/ Heap h.
 Proof.
-  Admitted.
+intros h PH.
+destruct (classic (exists v: Z,
+  h.(vvalid) v /\
+  exists y: Z,
+    (BinaryTree.step_l h v y \/ BinaryTree.step_r h v y) /\ (v > y)%Z
+)) as [Hviol | Hnoviol].
+  (*有局部破坏*)
+  - left.
+    split.
+    destruct PH.
+    destruct Hviol.
+    exists x.
+    split.
+    + apply H.
+    + split.
+      ++ apply H.
+      ++ intros.
+          destruct H as [Hvx [Hy [Hstep Hx_gt_y]]].
+          destruct H1 as [Hstep_l | Hstep_r]. 
+          +++ specialize exists_violation0 with x0 x.
+              destruct (Z.compare_spec x0 y) as [Hlt | Heq | Hgt].
+
+
   (* intros h PH.
   (* 先考虑是否存在违反堆性质的节点 *)
   destruct (classic (exists v,
