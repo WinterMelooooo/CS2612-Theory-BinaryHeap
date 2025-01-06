@@ -273,104 +273,104 @@ Theorem partial_heap_classification:
   forall h: BinTree Z Z,
     PartialHeap h -> StrictPartialHeap h \/ Heap h.
 Proof.
-intros h PH.
-destruct (classic (exists v: Z,
-  h.(vvalid) v /\
-  exists y: Z,
-    (BinaryTree.step_l h v y \/ BinaryTree.step_r h v y) /\ (v > y)%Z
-)) as [Hviol | Hnoviol].
-  (*有局部破坏*)
-  - left.
+  intros h PH.
+  destruct (classic (exists v: Z,
+    h.(vvalid) v /\
+    exists y: Z,
+      (BinaryTree.step_l h v y \/ BinaryTree.step_r h v y) /\ (v > y)%Z
+  )) as [Hviol | Hnoviol].
+    (*有局部破坏*)
+    - left.
+      split.
+      destruct PH.
+      destruct Hviol.
+      exists x.
+      split.
+      + apply H.
+      + split.
+        ++ apply H.
+        ++ intros.
+            destruct H as [Hvx [Hy [Hstep Hx_gt_y]]].
+            destruct H1 as [Hstep_l | Hstep_r]. 
+            +++ specialize exists_violation0 with x0 x.
+                destruct (Z.compare_spec x0 y) as [Hlt | Heq | Hgt].
+                ++++ rewrite Hlt.
+                    reflexivity.
+                ++++ apply Z.lt_le_incl.
+                    assumption.
+                ++++ destruct exists_violation0.
+                    +++++ split.
+                        ++++++ destruct Hstep_l.
+                              destruct H.
+                              destruct H.
+                              apply step_src_valid.
+                        ++++++ exists y.
+                              split.
+                              +++++++ tauto.
+                              +++++++ lia. 
+                    +++++ split.
+                        ++++++ apply Hvx.
+                        ++++++ exists Hy.
+                              tauto.
+                    +++++ lia.
+            +++ specialize exists_violation0 with x0 x.
+                destruct (Z.compare_spec x0 y) as [Hlt | Heq | Hgt].
+                ++++ rewrite Hlt.
+                    reflexivity.
+                ++++ apply Z.lt_le_incl.
+                    assumption.
+                ++++ destruct exists_violation0.
+                    +++++ split.
+                        ++++++ destruct Hstep_r.
+                              destruct H.
+                              destruct H.
+                              apply step_src_valid.
+                        ++++++ exists y.
+                              split.
+                              +++++++ tauto.
+                              +++++++ lia. 
+                    +++++ split.
+                        ++++++ apply Hvx.
+                        ++++++ exists Hy.
+                              tauto.
+                    +++++ lia.
+    (*无局部破坏*)
+    - right.
+    Search "not_ex_all_not".
+    Locate not_ex_all_not.
+    pose proof not_ex_all_not Z _ Hnoviol.
+    simpl in H.
     split.
-    destruct PH.
-    destruct Hviol.
-    exists x.
-    split.
-    + apply H.
-    + split.
-      ++ apply H.
-      ++ intros.
-          destruct H as [Hvx [Hy [Hstep Hx_gt_y]]].
-          destruct H1 as [Hstep_l | Hstep_r]. 
-          +++ specialize exists_violation0 with x0 x.
-              destruct (Z.compare_spec x0 y) as [Hlt | Heq | Hgt].
-              ++++ rewrite Hlt.
-                   reflexivity.
-              ++++ apply Z.lt_le_incl.
-                   assumption.
-              ++++ destruct exists_violation0.
-                  +++++ split.
-                      ++++++ destruct Hstep_l.
-                             destruct H.
-                             destruct H.
-                             apply step_src_valid.
-                      ++++++ exists y.
-                             split.
-                             +++++++ tauto.
-                             +++++++ lia. 
-                  +++++ split.
-                      ++++++ apply Hvx.
-                      ++++++ exists Hy.
-                             tauto.
-                  +++++ lia.
-          +++ specialize exists_violation0 with x0 x.
-              destruct (Z.compare_spec x0 y) as [Hlt | Heq | Hgt].
-              ++++ rewrite Hlt.
-                  reflexivity.
-              ++++ apply Z.lt_le_incl.
-                  assumption.
-              ++++ destruct exists_violation0.
-                  +++++ split.
-                      ++++++ destruct Hstep_r.
-                            destruct H.
-                            destruct H.
-                            apply step_src_valid.
-                      ++++++ exists y.
-                            split.
-                            +++++++ tauto.
-                            +++++++ lia. 
-                  +++++ split.
-                      ++++++ apply Hvx.
-                      ++++++ exists Hy.
-                            tauto.
-                  +++++ lia.
-  (*无局部破坏*)
-  - right.
-  Search "not_ex_all_not".
-  Locate not_ex_all_not.
-  pose proof not_ex_all_not Z _ Hnoviol.
-  simpl in H.
-  split.
-    + intros.
-    specialize H with x.
-    apply not_and_or in H.
-    destruct H.
-      ++ destruct H0.
-         destruct H0.
-         destruct H0.
-         tauto.
-      ++ pose proof not_ex_all_not Z _ H.
-         simpl in H1.
-         specialize (H1 y).
-         apply not_and_or in H1.
-         destruct H1.
-         +++ tauto.
-         +++ lia.
-    + intros.
-    specialize H with x.
-    apply not_and_or in H.
-    destruct H.
-      ++ destruct H0.
-         destruct H0.
-         destruct H0.
-         tauto.
-      ++ pose proof not_ex_all_not Z _ H.
-         simpl in H1.
-         specialize (H1 y).
-         apply not_and_or in H1.
-         destruct H1.
-         +++ tauto.
-         +++ lia.
+      + intros.
+      specialize H with x.
+      apply not_and_or in H.
+      destruct H.
+        ++ destruct H0.
+          destruct H0.
+          destruct H0.
+          tauto.
+        ++ pose proof not_ex_all_not Z _ H.
+          simpl in H1.
+          specialize (H1 y).
+          apply not_and_or in H1.
+          destruct H1.
+          +++ tauto.
+          +++ lia.
+      + intros.
+      specialize H with x.
+      apply not_and_or in H.
+      destruct H.
+        ++ destruct H0.
+          destruct H0.
+          destruct H0.
+          tauto.
+        ++ pose proof not_ex_all_not Z _ H.
+          simpl in H1.
+          specialize (H1 y).
+          apply not_and_or in H1.
+          destruct H1.
+          +++ tauto.
+          +++ lia.
 Qed.                          
                 
 
