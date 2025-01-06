@@ -6,6 +6,8 @@ Import SetsNotation.
 Local Open Scope sets_scope.
 Require Import Coq.Logic.Classical.
 Require Import Coq.ZArith.ZArith_dec.
+Require Import Lia.
+Require Import Coq.Logic.Classical_Pred_Type.
 (*********************************************************)
 (**                                                      *)
 (** Binary Tree                                          *)
@@ -292,59 +294,85 @@ destruct (classic (exists v: Z,
           destruct H1 as [Hstep_l | Hstep_r]. 
           +++ specialize exists_violation0 with x0 x.
               destruct (Z.compare_spec x0 y) as [Hlt | Heq | Hgt].
-
-
-  (* intros h PH.
-  (* 先考虑是否存在违反堆性质的节点 *)
-  destruct (classic (exists v,
-    h.(vvalid) v /\
-    exists y, (BinaryTree.step_l h v y \/ BinaryTree.step_r h v y) /\ (v > y)%Z)) as [H_violation | H_no_violation].
-  
-  - (* 如果存在违反堆性质的节点，证明是 StrictPartialHeap *)
-    left.
-    destruct H_violation as [v [Hvalid [y [Hstep Hgt]]]].
-    constructor.
-    exists v.
-    split; [exact Hvalid |].
-    split; [exists y; split; assumption |].
-    intros x y0 Hneq Hstep'.
-    (* 利用 PartialHeap 的性质 *)
-    destruct PH as [H_unique].
-    (* 反证法：假设 x > y0 *)
-    destruct (Z.gt_dec x y0) as [Hgt' | Hngt].
-    + assert (x = v).
-      { apply (H_unique x v); split.
-        - split; [assumption |].
-          exists y0; split; assumption.
-        - split; [assumption |].
-          exists y; split; assumption. }
-      contradiction.
-    + apply Z.gt_ngt in Hngt.
-      apply Z.le_lteq in Hngt.
-      assumption.
-
-  - (* 如果不存在违反堆性质的节点，证明是 Heap *)
-    right.
-    constructor; intros x y Hstep.
-    + (* 对于左子节点 *)
-      apply NNPP.
-      intro Hnle.
-      apply H_no_violation.
-      exists x. split; [|exists y; split].
-      * destruct Hstep as [e [Hstep_aux _]].
-        destruct Hstep_aux; assumption.
-      * left; assumption.
-      * apply Z.nle_gt; assumption.
-    + (* 对于右子节点 *)
-      apply NNPP.
-      intro Hnle.
-      apply H_no_violation.
-      exists x. split; [|exists y; split].
-      * destruct Hstep as [e [Hstep_aux _]].
-        destruct Hstep_aux; assumption.
-      * right; assumption.
-      * apply Z.nle_gt; assumption. *)
-
+              ++++ rewrite Hlt.
+                   reflexivity.
+              ++++ apply Z.lt_le_incl.
+                   assumption.
+              ++++ destruct exists_violation0.
+                  +++++ split.
+                      ++++++ destruct Hstep_l.
+                             destruct H.
+                             destruct H.
+                             apply step_src_valid.
+                      ++++++ exists y.
+                             split.
+                             +++++++ tauto.
+                             +++++++ lia. 
+                  +++++ split.
+                      ++++++ apply Hvx.
+                      ++++++ exists Hy.
+                             tauto.
+                  +++++ lia.
+          +++ specialize exists_violation0 with x0 x.
+              destruct (Z.compare_spec x0 y) as [Hlt | Heq | Hgt].
+              ++++ rewrite Hlt.
+                  reflexivity.
+              ++++ apply Z.lt_le_incl.
+                  assumption.
+              ++++ destruct exists_violation0.
+                  +++++ split.
+                      ++++++ destruct Hstep_r.
+                            destruct H.
+                            destruct H.
+                            apply step_src_valid.
+                      ++++++ exists y.
+                            split.
+                            +++++++ tauto.
+                            +++++++ lia. 
+                  +++++ split.
+                      ++++++ apply Hvx.
+                      ++++++ exists Hy.
+                            tauto.
+                  +++++ lia.
+  (*无局部破坏*)
+  - right.
+  Search "not_ex_all_not".
+  Locate not_ex_all_not.
+  pose proof not_ex_all_not Z _ Hnoviol.
+  simpl in H.
+  split.
+    + intros.
+    specialize H with x.
+    apply not_and_or in H.
+    destruct H.
+      ++ destruct H0.
+         destruct H0.
+         destruct H0.
+         tauto.
+      ++ pose proof not_ex_all_not Z _ H.
+         simpl in H1.
+         specialize (H1 y).
+         apply not_and_or in H1.
+         destruct H1.
+         +++ tauto.
+         +++ lia.
+    + intros.
+    specialize H with x.
+    apply not_and_or in H.
+    destruct H.
+      ++ destruct H0.
+         destruct H0.
+         destruct H0.
+         tauto.
+      ++ pose proof not_ex_all_not Z _ H.
+         simpl in H1.
+         specialize (H1 y).
+         apply not_and_or in H1.
+         destruct H1.
+         +++ tauto.
+         +++ lia.
+Qed.                          
+                
 
 Definition Root (h: BinTree Z Z) (v: Z): Prop :=
   h.(vvalid) v /\
