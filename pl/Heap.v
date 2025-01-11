@@ -469,3 +469,124 @@ Definition move_down_in_partial_heap: StateRelMonad.M (BinTree Z Z) unit :=
         (v > yr)%Z /\
         (forall yl, BinaryTree.step_l bt1 v yl -> (v <= yl)%Z) /\
         swap_nodes bt1 v yr bt2)).
+
+
+(**********************************************************)
+(** 不重复之前的定义：只展示与"交换保留PartialHeap"相关的证明 *)
+(**********************************************************)
+
+(** 假设以下记号与性质均已在用户代码中出现并被证明：
+    - [PartialHeap] 的定义与基本性质
+    - [StrictPartialHeap2] 与 [StrictPartialHeap3] 的定义
+    - [swap_nodes] 函数以及它"仅交换 v1 与 v2 "的性质
+    - [move_up_in_partial_heap] 的定义
+    - [Heap] 已知是 [PartialHeap]
+    - 二叉树的合法性、唯一父子关系等均已由用户代码提供
+ *)
+
+ Require Import Coq.ZArith.ZArith.
+ Require Import Lia.
+ Require Import Coq.Program.Equality.  (* 有时可用来做"依值类型相等"推理 *)
+ 
+ From Coq Require Export ssreflect ssrfun ssrbool.  (* 可选，简化证明脚本 *)
+ 
+ (** ----------------------------------------------------- **)
+ (**   辅助引理1: 处理 StrictPartialHeap2 交换后的情况   **)
+ (** ----------------------------------------------------- **)
+ 
+ Lemma preserve_partial_heap_after_swap_strict2:
+   forall bt1 bt2 (v yl : Z),
+     StrictPartialHeap2 bt1 ->
+     BinaryTree.vvalid Z Z bt1 v ->
+     BinaryTree.vvalid Z Z bt1 yl ->
+     BinaryTree.step_l bt1 v yl ->
+     (v > yl)%Z ->
+     swap_nodes bt1 v yl bt2 ->
+     PartialHeap bt2.
+ Proof.
+   intros * Hsph2 Hv Hyl Hstep_l Hgt Hswap.
+   destruct Hsph2 as [ [v_bad [Hv_bad [ [yl_bad [Hstep_l_bad [Hgt_bad Hr_cond]]] Hothers] ]] ].
+   assert (v_bad = v) as ->. {
+     destruct (Z.eq_dec v_bad v) as [|Hneq]; [easy|].
+     exfalso.
+     eapply Hothers.
+     - split; [apply Hv_bad|].
+       exists yl_bad; split; [left; exact Hstep_l_bad|exact Hgt_bad].
+     - split; [apply Hv|].
+       exists yl; split; [left; exact Hstep_l|exact Hgt].
+   }
+   split.
+   intros v1 v2 Hviol1 Hviol2.
+   destruct Hviol1 as [Hv1 [y1 [Hstep1 Hgt1]]].
+   destruct Hviol2 as [Hv2 [y2 [Hstep2 Hgt2]]].
+   lia.
+ Qed.
+ 
+ (** ----------------------------------------------------- **)
+ (**   辅助引理2: 处理 StrictPartialHeap3 交换后的情况   **)
+ (** ----------------------------------------------------- **)
+ 
+ Lemma preserve_partial_heap_after_swap_strict3:
+   forall bt1 bt2 (v yr : Z),
+     (* 假设 bt1 是 StrictPartialHeap3 *)
+     StrictPartialHeap3 bt1 ->
+     (* v 与 yr 就是"唯一违反堆性质"的父与其右孩子 *)
+     bt1.(vvalid) v ->
+     bt1.(vvalid) yr ->
+     BinaryTree.step_r bt1 v yr ->
+     (v > yr)%Z ->
+     (forall yl, BinaryTree.step_l bt1 v yl -> (v <= yl)%Z) ->
+     swap_nodes bt1 v yr bt2 ->
+     (* 结论：交换后 bt2 仍然是 PartialHeap *)
+     PartialHeap bt2.
+ Proof.
+   intros * Hsph3 Hv Hyr Hstep_r Hgt HleftCond Hswap.
+   destruct Hsph3 as [[v_bad [Hv_bad [ [yr_bad [Hstep_r_bad [Hgt_bad Hforall_left]]] Hothers]]]].
+   (* 与上个引理相同，用唯一性断言 v_bad = v *)
+   assert (v_bad = v) as ->.
+   {
+     destruct (Z.eq_dec v_bad v) as [|Hneq]; [easy|].
+     exfalso.
+     eapply Hothers.
+     - split; [apply Hv_bad|].
+       exists yr_bad; split; [right; exact Hstep_r_bad| exact Hgt_bad].
+     - split; [apply Hv|].
+       exists yr; split; [right; exact Hstep_r| exact Hgt].
+   }
+ 
+   (* 分析 swap_nodes *)
+   unfold swap_nodes in Hswap.
+   destruct Hswap as [Hval_eq [Heval_eq [Hsrc_swap [Hdst_swap Hgo_left_eq]]]].
+ 
+   (* 同理，构造 PartialHeap bt2 的 exists_violation 性质 *)
+   constructor. intros v1 v2 Hviol1 Hviol2.
+   destruct Hviol1 as [Hv1 [y1 [Hstep1 Hgt1]]].
+   destruct Hviol2 as [Hv2 [y2 [Hstep2 Hgt2]]].
+   lia.
+ Qed.
+ 
+ (** ----------------------------------------------------- **)
+ (**   主定理: move_up_in_partial_heap 后仍是 PartialHeap  **)
+ (** ----------------------------------------------------- **)
+ 
+ Theorem move_up_in_partial_heap_preserves_partial_heap:
+   forall bt1 bt2,
+     move_up_in_partial_heap bt1 tt bt2 ->
+     PartialHeap bt2.
+ Proof.
+   intros bt1 bt2 Hmove.
+   unfold move_up_in_partial_heap in Hmove.
+   destruct Hmove as [PH1 [ [ [Hheap eq_bt2]
+                             | [ [Hsph2 [v [yl [Hv [Hyl [Hstep_l [Hgt Hswap]]]]]] 
+                               | [Hsph3 [v [yr [Hv [Hyr [Hstep_r [HforLeft [Hgt Hswap]]]]]] ]]]
+                           ] ].
+   - (** 情形1: [bt1] 本就是完整堆 [Heap bt1]，且 [bt2 = bt1] **)
+     subst bt2.  
+     exact PH1.  (* 完整堆在定义上 trivially 是 PartialHeap *)
+ 
+   - (** 情形2: [bt1] 是 [StrictPartialHeap2], 对违背堆性质的 v 与其左孩子 yl 进行 swap *)
+     eapply preserve_partial_heap_after_swap_strict2; eauto.
+ 
+   - (** 情形3: [bt1] 是 [StrictPartialHeap3], 对违背堆性质的 v 与其右孩子 yr 进行 swap *)
+     eapply preserve_partial_heap_after_swap_strict3; eauto.
+ Qed.
