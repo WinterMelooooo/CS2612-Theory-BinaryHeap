@@ -557,7 +557,7 @@ Admitted.
 
 (** ----------------------------------------------------- **)
 (** ----------------------------------------------------- **)
-(** level 2 **)
+(** level 2 3 **)
 (** ----------------------------------------------------- **)
 (** ----------------------------------------------------- **)
  
@@ -607,11 +607,10 @@ Inductive Index (bt: BinTree Z Z): Z -> Z -> Prop :=
       forall v,
       ~BinaryTree.vvalid Z Z bt v -> 
       Index bt v 0
-  | index_leaf:
+  | index_root:
       forall v,
       BinaryTree.vvalid Z Z bt v ->
-      (forall y, ~BinaryTree.step_l bt v y) ->
-      (forall y, ~BinaryTree.step_r bt v y) ->
+      Root bt v ->
       Index bt v 1
   | index_left:
       forall v cl d1,
@@ -635,6 +634,8 @@ Inductive NumNodes (bt: BinTree Z Z): Z -> Z -> Prop :=
   | num_nodes_leaf:
       forall v,
       BinaryTree.vvalid Z Z bt v ->
+      (forall y, ~BinaryTree.step_l bt v y) ->
+      (forall y, ~BinaryTree.step_r bt v y) ->
       NumNodes bt v 1
   | num_nodes_left:
     forall v cl n1,
@@ -665,7 +666,7 @@ Definition MaxIndex (bt: BinTree Z Z) (index: Z): Prop :=
   forall v index_v,
   v <> largest_v ->
   Index bt v index_v ->
-  (largest_v > v)%Z.
+  (index > index_v)%Z.
 
 Record FullHeap (bt: BinTree Z Z) :=
   {
