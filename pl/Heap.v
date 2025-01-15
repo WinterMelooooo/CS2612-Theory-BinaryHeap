@@ -83,6 +83,9 @@ Definition Leaf (V E: Type) (bt: BinTree V E) (v: V): Prop :=
   (~ exists y, BinaryTree.step_l bt v y) /\
   (~ exists y, BinaryTree.step_r bt v y).
 
+Definition Node (V E: Type) (bt: BinTree V E) (v: V): Prop :=
+  ~ Leaf V E bt v.
+
 Definition bintree_connected {V E: Type} (bt: BinTree V E): Prop :=
   exists root: V,
     bt.(vvalid) root /\
@@ -530,5 +533,157 @@ Theorem move_down_in_partial_heap_preserves_partial_heap:
 Proof.
 Admitted.
 
+(** ----------------------------------------------------- **)
+(**  集合不变性  **)
+(** ----------------------------------------------------- **)
+
+Theorem move_up_in_partial_heap_preserves_set_of_nodes:
+  forall bt1 bt2 X,
+    PartialHeap bt1 ->
+    move_up_in_partial_heap bt1 tt bt2 ->
+    Abs bt1 X ->
+    Abs bt2 X.
+Proof.
+Admitted.
+
+Theorem move_down_in_partial_heap_preserves_set_of_nodes:
+  forall bt1 bt2 X,
+    PartialHeap bt1 ->
+    move_down_in_partial_heap bt1 tt bt2 ->
+    Abs bt1 X ->
+    Abs bt2 X.
+Proof.
+Admitted.
+
+(** ----------------------------------------------------- **)
+(** ----------------------------------------------------- **)
+(** level 2 **)
+(** ----------------------------------------------------- **)
+(** ----------------------------------------------------- **)
+ 
+Require Import Classical.
+Require Import Coq.ZArith.ZArith.
+Open Scope Z_scope.
+Require Import Coq.Logic.Description.
+Require Import Coq.Logic.Classical.
+Require Import Coq.Logic.Classical_Prop.
+
+Inductive Depth (bt: BinTree Z Z): Z -> Z -> Prop :=
+  | depth_invalid: 
+      forall v,
+      ~BinaryTree.vvalid Z Z bt v -> 
+      Depth bt v 0
+  | depth_leaf:
+      forall v,
+      BinaryTree.vvalid Z Z bt v ->
+      (forall y, ~BinaryTree.step_l bt v y) ->
+      (forall y, ~BinaryTree.step_r bt v y) ->
+      Depth bt v 1
+  | depth_left:
+      forall v cl d1,
+      BinaryTree.vvalid Z Z bt v ->
+      BinaryTree.step_l bt v cl ->
+      (~exists cr, BinaryTree.step_r bt v cr) ->
+      Depth bt cl d1 ->
+      Depth bt v (d1 + 1%Z)
+  | depth_right:
+      forall v cr d1,
+      BinaryTree.vvalid Z Z bt v ->
+      BinaryTree.step_r bt v cr ->
+      (~exists cl, BinaryTree.step_l bt v cl) ->
+      Depth bt cr d1 ->
+      Depth bt v (d1 + 1%Z)
+  | depth_left_right:
+      forall v cl cr d1 d2,
+      BinaryTree.vvalid Z Z bt v ->
+      BinaryTree.step_l bt v cl ->
+      BinaryTree.step_r bt v cr ->
+      Depth bt cl d1 ->
+      Depth bt cr d2 ->
+      Depth bt v ((Z.max d1 d2) + 1%Z).
+
+Inductive Index (bt: BinTree Z Z): Z -> Z -> Prop :=
+  | index_invalid: 
+      forall v,
+      ~BinaryTree.vvalid Z Z bt v -> 
+      Index bt v 0
+  | index_leaf:
+      forall v,
+      BinaryTree.vvalid Z Z bt v ->
+      (forall y, ~BinaryTree.step_l bt v y) ->
+      (forall y, ~BinaryTree.step_r bt v y) ->
+      Index bt v 1
+  | index_left:
+      forall v cl d1,
+      BinaryTree.vvalid Z Z bt v ->
+      BinaryTree.step_l bt v cl ->
+      Index bt v d1 ->
+      Index bt cl (2 * d1)
+  | index_right:
+      forall v cr d1,
+      BinaryTree.vvalid Z Z bt v ->
+      BinaryTree.step_r bt v cr ->
+      Index bt v d1 ->
+      Index bt cr (2 * d1 + 1%Z).
 
 
+Inductive NumNodes (bt: BinTree Z Z): Z -> Z -> Prop :=
+  | num_nodes_invalid:
+      forall v,
+      ~BinaryTree.vvalid Z Z bt v ->
+      NumNodes bt v 0
+  | num_nodes_leaf:
+      forall v,
+      BinaryTree.vvalid Z Z bt v ->
+      NumNodes bt v 1
+  | num_nodes_left:
+    forall v cl n1,
+    BinaryTree.vvalid Z Z bt v ->
+    BinaryTree.step_l bt v cl ->
+    (~exists cr, BinaryTree.step_r bt v cr) ->
+    NumNodes bt cl n1 ->
+    NumNodes bt v (n1 + 1%Z)
+  | num_nodes_right:
+    forall v cr n1,
+    BinaryTree.vvalid Z Z bt v ->
+    BinaryTree.step_r bt v cr ->
+    (~exists cl, BinaryTree.step_l bt v cl) ->
+    NumNodes bt cr n1 ->
+    NumNodes bt v (n1 + 1%Z)
+  | num_nodes_left_right:
+    forall v cl cr n1 n2,
+    BinaryTree.vvalid Z Z bt v ->
+    BinaryTree.step_l bt v cl ->
+    BinaryTree.step_r bt v cr ->
+    NumNodes bt cl n1 ->
+    NumNodes bt cr n2 ->
+    NumNodes bt v (n1 + n2 + 1%Z).
+
+Definition MaxIndex (bt: BinTree Z Z) (index: Z): Prop :=
+  exists largest_v,
+  Index bt largest_v index ->
+  forall v index_v,
+  v <> largest_v ->
+  Index bt v index_v ->
+  (largest_v > v)%Z.
+
+Record FullHeap (bt: BinTree Z Z) :=
+  {
+    full_heap_heap: Heap bt;
+    full_heap_connected: bintree_connected bt;
+    full_heap_full: exists root root_num max_index, 
+      Root bt root /\
+      NumNodes bt root root_num /\
+      MaxIndex bt max_index /\
+      max_index = root_num
+  }.
+
+
+(* Definition RemoveMin (bt: BinTree Z Z) (v: Z) (bt': BinTree Z Z): Prop :=
+  exists root,
+  Root bt root /\
+  (forall v, BinaryTree.vvalid Z Z bt' v -> (v = root) \/ (exists y, BinaryTree.step_u bt v y)) *)
+
+
+
+  
