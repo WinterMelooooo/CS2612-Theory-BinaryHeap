@@ -99,6 +99,7 @@ Definition bintree_connected {V E: Type} (bt: BinTree V E): Prop :=
 Definition Abs (h: BinTree Z Z) (X: Z -> Prop): Prop :=
   X == h.(vvalid).
 
+
 Record PartialHeap (h: BinTree Z Z): Prop := {
   (* 最多存在一个节点v违反堆的性质 *)
   exists_violation: forall v1 v2: Z,
@@ -110,8 +111,26 @@ Record PartialHeap (h: BinTree Z Z): Prop := {
     (* 那么v1和v2必须是同一个节点 *)
     v1 = v2;
 }.
-  
 
+(*
+(* 定义:节点违反堆性质 *)
+Definition IsViolation (h: BinTree Z Z) (v: Z) : Prop :=
+  h.(vvalid) v /\ 
+  exists y: Z, (BinaryTree.step_l h v y \/ BinaryTree.step_r h v y) /\ (v > y)%Z.
+
+(* 定义:最多有一个违反堆性质的节点 *)
+Definition AtMostOneViolation (h: BinTree Z Z) : Prop :=
+  forall v1 v2: Z,
+    IsViolation h v1 -> 
+    IsViolation h v2 -> 
+    v1 = v2.
+
+(* 重构后的部分堆定义 *)
+Record PartialHeap (h: BinTree Z Z): Prop := {
+  exists_violation: AtMostOneViolation h;
+}.
+  
+*)
 Record StrictPartialHeap (h: BinTree Z Z): Prop := {
   (* 存在一个节点v违反堆的性质 *)
   exists_violation_strict: exists v: Z,
@@ -124,6 +143,29 @@ Record StrictPartialHeap (h: BinTree Z Z): Prop := {
       (BinaryTree.step_l h x y \/ BinaryTree.step_r h x y) -> 
       (x <= y)%Z);
 }.
+
+
+(*
+(* 定义:节点满足堆性质 *)
+Definition SatisfyHeapProperty (h: BinTree Z Z) (x: Z) : Prop :=
+  forall y: Z,
+    (BinaryTree.step_l h x y \/ BinaryTree.step_r h x y) -> 
+    (x <= y)%Z.
+
+(* 定义:除了v外所有节点都满足堆性质 *)
+Definition AllOthersSatisfyHeap (h: BinTree Z Z) (v: Z) : Prop :=
+  forall x: Z,
+    x <> v -> 
+    SatisfyHeapProperty h x.
+
+(* 重构后的严格部分堆定义 *)
+Record StrictPartialHeap (h: BinTree Z Z): Prop := {
+  exists_violation_strict: exists v: Z,
+    h.(vvalid) v ->
+    ~(SatisfyHeapProperty h v) /\
+    AllOthersSatisfyHeap h v;
+}.
+*)
 
 Record StrictPartialHeap1 (h: BinTree Z Z): Prop := {
   (* 存在一个节点v同时违反左右子节点的堆性质 *)
@@ -141,6 +183,7 @@ Record StrictPartialHeap1 (h: BinTree Z Z): Prop := {
       (BinaryTree.step_l h x y \/ BinaryTree.step_r h x y) -> 
       (x <= y)%Z);
 }.
+
 
 Record StrictPartialHeap2 (h: BinTree Z Z): Prop := {
   exists_violation_strict2: exists v: Z,
@@ -194,6 +237,7 @@ Proof.
     destruct H0.
     destruct H0.
     destruct H0.
+    
     (*情况1：左儿子比父亲小，即StrictPartialHeap1或StrictPartialHeap2*)
     - destruct (classic (exists k, BinaryTree.step_r h x k /\ (x > k)%Z)) 
     as [ [k [Hstep_r_e_r Hv_gt_e_r]] | Hno_right_violation ].
@@ -375,7 +419,7 @@ Proof.
           +++ tauto.
           +++ lia.
 Qed.                          
-                
+*)               
 
 Definition Root (h: BinTree Z Z) (v: Z): Prop :=
   h.(vvalid) v /\
@@ -385,13 +429,70 @@ Require Import PL.Monad.
 Require Import PL.StateRelMonad.
 Import Monad SetMonad StateRelMonad.
 
-Definition swap_nodes (bt: BinTree Z Z) (v1 v2: Z) (bt': BinTree Z Z): Prop :=
+Definition swap_nodes (bt: BinTree Z Z) (v1 v2: Z) (bt': BinTree Z Z): Prop := 
   BinaryTree.vvalid _ _ bt' == BinaryTree.vvalid _ _ bt /\
   BinaryTree.evalid _ _ bt' == BinaryTree.evalid _ _ bt /\
   (forall e, BinaryTree.src _ _ bt' e = if Z.eq_dec (BinaryTree.src _ _ bt e) v1 then v2 else if Z.eq_dec (BinaryTree.src _ _ bt e) v2 then v1 else BinaryTree.src _ _ bt e) /\
   (forall e, BinaryTree.dst _ _ bt' e = if Z.eq_dec (BinaryTree.dst _ _ bt e) v1 then v2 else if Z.eq_dec (BinaryTree.dst _ _ bt e) v2 then v1 else BinaryTree.dst _ _ bt e) /\
   BinaryTree.go_left _ _ bt' = BinaryTree.go_left _ _ bt.
 
+(* 定义交换节点的状态转换 *)
+(*
+Definition swap_nodes_rel (v1 v2: Z) : StateRelMonad.M (BinTree Z Z) unit :=
+  fun (bt: BinTree Z Z) (_:unit) (bt': BinTree Z Z) =>
+    BinaryTree.vvalid _ _ bt' == BinaryTree.vvalid _ _ bt /\
+    BinaryTree.evalid _ _ bt' == BinaryTree.evalid _ _ bt /\
+    (forall e, BinaryTree.src _ _ bt' e = 
+      if Z.eq_dec (BinaryTree.src _ _ bt e) v1 then v2 
+      else if Z.eq_dec (BinaryTree.src _ _ bt e) v2 then v1 
+      else BinaryTree.src _ _ bt e) /\
+    (forall e, BinaryTree.dst _ _ bt' e = 
+      if Z.eq_dec (BinaryTree.dst _ _ bt e) v1 then v2 
+      else if Z.eq_dec (BinaryTree.dst _ _ bt e) v2 then v1 
+      else BinaryTree.dst _ _ bt e) /\
+    BinaryTree.go_left _ _ bt' = BinaryTree.go_left _ _ bt.
+*)
+(* 节点有效性保持不变 *)
+Definition preserve_vvalid (bt bt': BinTree Z Z) : Prop :=
+  BinaryTree.vvalid _ _ bt' == BinaryTree.vvalid _ _ bt.
+
+(* 边有效性保持不变 *)
+Definition preserve_evalid (bt bt': BinTree Z Z) : Prop :=
+  BinaryTree.evalid _ _ bt' == BinaryTree.evalid _ _ bt.
+
+(* 交换源节点 *)
+Definition swap_src (v1 v2: Z) (bt bt': BinTree Z Z) : Prop :=
+  forall e, BinaryTree.src _ _ bt' e = 
+    if Z.eq_dec (BinaryTree.src _ _ bt e) v1 then v2 
+    else if Z.eq_dec (BinaryTree.src _ _ bt e) v2 then v1 
+    else BinaryTree.src _ _ bt e.
+
+(* 交换目标节点 *)
+Definition swap_dst (v1 v2: Z) (bt bt': BinTree Z Z) : Prop :=
+  forall e, BinaryTree.dst _ _ bt' e = 
+    if Z.eq_dec (BinaryTree.dst _ _ bt e) v1 then v2 
+    else if Z.eq_dec (BinaryTree.dst _ _ bt e) v2 then v1 
+    else BinaryTree.dst _ _ bt e.
+
+(* 组合所有操作 *)
+Definition swap_nodes_rel (v1 v2: Z) : StateRelMonad.M (BinTree Z Z) unit :=
+  fun (bt: BinTree Z Z) (_:unit) (bt': BinTree Z Z) =>
+    preserve_vvalid bt bt' /\
+    preserve_evalid bt bt' /\
+    swap_src v1 v2 bt bt' /\
+    swap_dst v1 v2 bt bt' /\
+    BinaryTree.go_left _ _ bt' = BinaryTree.go_left _ _ bt.
+
+Definition move_up (v: Z): StateRelMonad.M (BinTree Z Z) unit :=
+  fun (bt1: BinTree Z Z) (_: unit) (bt2: BinTree Z Z) =>
+    (* 检查节点 v 是合法的 *)
+    BinaryTree.vvalid Z Z bt1 v /\
+    (* 存在父节点 parent *)
+    exists parent,
+      (* 在 bt1 中找到 parent *)
+      BinaryTree.step_u bt1 v parent /\
+      (* 使用新的 swap_nodes_rel 交换节点 *)
+      (swap_nodes_rel v parent) bt1 tt bt2.
 
 Definition move_up (v: Z): StateRelMonad.M (BinTree Z Z) unit :=
   fun (bt1: BinTree Z Z) (_: unit) (bt2: BinTree Z Z) =>
@@ -402,7 +503,9 @@ Definition move_up (v: Z): StateRelMonad.M (BinTree Z Z) unit :=
       (* 在 bt1 中找到 parent *)
       BinaryTree.step_u bt1 v parent /\
       (* 交换节点 v 和 parent，得到新的 bt2 *)
-      swap_nodes bt1 v parent bt2.
+      swap_nodes_rel v parent bt1 bt2.
+
+  
 
 Definition move_down (v: Z): StateRelMonad.M (BinTree Z Z) unit :=
   fun (bt1: BinTree Z Z) (_: unit) (bt2: BinTree Z Z) =>
