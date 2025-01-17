@@ -22,6 +22,43 @@ Record BinaryTree (Vertex Edge: Type) := {
   src : Edge -> Vertex;
   dst : Edge -> Vertex;
   go_left: Edge -> Prop;
+
+  (* 每个节点最多一个父节点 *)
+  single_parent: forall v e1 e2,
+  evalid e1 -> evalid e2 ->
+  dst e1 = v -> dst e2 = v -> 
+  e1 = e2;
+
+  (* 每个节点最多两个子节点
+  at_most_two_children: forall v e1 e2 e3,
+  evalid e1 -> evalid e2 -> evalid e3 ->
+  src e1 = v -> src e2 = v -> src e3 = v ->
+  go_left e1 -> go_left e2 -> ~ go_left e3 ->
+  e1 = e2; *)
+
+  (* 每个节点最多有一个左子节点 *)
+  single_left_child: forall v e1 e2,
+  evalid e1 -> evalid e2 ->
+  src e1 = v -> src e2 = v ->
+  go_left e1 -> go_left e2 ->
+  e1 = e2;
+
+  (* 每个节点最多有一个右子节点 *)  
+  single_right_child: forall v e1 e2,
+  evalid e1 -> evalid e2 ->
+  src e1 = v -> src e2 = v ->
+  ~ go_left e1 -> ~ go_left e2 ->
+  e1 = e2;
+
+  (* 无环性质 *)
+  (* acyclic: forall v,
+    ~ (exists path, path_to_self v path);
+
+  (* 连通性 *)
+  connected: forall v1 v2,
+    vvalid v1 -> vvalid v2 ->
+    exists path, valid_path path v1 v2; *)
+
 }.
 
 Definition go_right (V E: Type) (bt: BinaryTree V E) (e: E): Prop :=
@@ -115,53 +152,59 @@ Record PartialHeap (h: BinTree Z Z): Prop := {
 Record StrictPartialHeap (h: BinTree Z Z): Prop := {
   (* 存在一个节点v违反堆的性质 *)
   exists_violation_strict: exists v: Z,
-    h.(vvalid) v -> (* v必须是合法节点 *)
-    (exists y: Z,
-      (BinaryTree.step_l h v y \/ BinaryTree.step_r h v y) /\ (v > y)%Z) /\
-    (* 其他所有节点都满足堆的性质 *)
-    (forall x y: Z,
-      x <> v -> 
-      (BinaryTree.step_l h x y \/ BinaryTree.step_r h x y) -> 
-      (x <= y)%Z);
+    (h.(vvalid) v /\ (* v必须是合法节点 *)
+    exists y: Z, 
+    ((BinaryTree.step_l h v y \/ BinaryTree.step_r h v y) /\ (v > y)%Z)) /\
+    (
+      forall v2: Z, (h.(vvalid) v /\ (* v必须是合法节点 *)
+      exists y: Z, 
+      ((BinaryTree.step_l h v y \/ BinaryTree.step_r h v y) /\ (v > y)%Z)) -> 
+      (v2 = v)
+    )
 }.
 
 Record StrictPartialHeap1 (h: BinTree Z Z): Prop := {
   (* 存在一个节点v同时违反左右子节点的堆性质 *)
   exists_violation_strict1: exists v: Z,
-    h.(vvalid) v -> (* v必须是合法节点 *)
+    (h.(vvalid) v /\ (* v必须是合法节点 *)
     (* v必须同时有左右子节点，并且比两个子节点都大 *)
     (exists yl yr: Z,
       BinaryTree.step_l h v yl /\ 
       BinaryTree.step_r h v yr /\ 
       (v > yl)%Z /\ 
-      (v > yr)%Z) /\
-    (* 其他所有节点都满足堆的性质 *)
-    (forall x y: Z,
-      x <> v -> 
-      (BinaryTree.step_l h x y \/ BinaryTree.step_r h x y) -> 
-      (x <= y)%Z);
+      (v > yr)%Z)) /\ (forall v2: Z, (h.(vvalid) v2 /\ (* v必须是合法节点 *)
+      (* v必须同时有左右子节点，并且比两个子节点都大 *)
+      (exists yl yr: Z,
+        BinaryTree.step_l h v2 yl /\ 
+        BinaryTree.step_r h v2 yr /\ 
+        (v > yl)%Z /\ 
+        (v > yr)%Z)) -> (v2 = v))
 }.
 
 Record StrictPartialHeap2 (h: BinTree Z Z): Prop := {
   exists_violation_strict2: exists v: Z,
-    h.(vvalid) v -> 
+    (h.(vvalid) v /\ (* v必须是合法节点 *)
     (* v必须有左孩子且大于左孩子，右孩子如果存在则不大于右孩子 *)
-    (exists yl: Z,
+    exists yl: Z,
       BinaryTree.step_l h v yl /\ 
       (v > yl)%Z /\
       (forall yr: Z, 
         BinaryTree.step_r h v yr -> 
         (v <= yr)%Z)) /\
     (* 其他所有节点都满足堆的性质 *)
-    (forall x y: Z,
-      x <> v -> 
-      (BinaryTree.step_l h x y \/ BinaryTree.step_r h x y) -> 
-      (x <= y)%Z);
+    (forall v2, (h.(vvalid) v2 /\ (* v必须是合法节点 *)
+    (* v必须有左孩子且大于左孩子，右孩子如果存在则不大于右孩子 *)
+    exists yl: Z,
+      BinaryTree.step_l h v2 yl /\ 
+      (v > yl)%Z /\
+      (forall yr: Z, 
+        BinaryTree.step_r h v2 yr -> 
+        (v2 <= yr)%Z)) -> (v2 = v))
 }.
 
 Record StrictPartialHeap3 (h: BinTree Z Z): Prop := {
   exists_violation_strict3: exists v: Z,
-    h.(vvalid) v ->
+    (h.(vvalid) v /\ (* v必须是合法节点 *)
     (* v必须有右孩子且大于右孩子，左孩子如果存在则不大于左孩子 *)
     (exists yr: Z,
       BinaryTree.step_r h v yr /\ 
@@ -170,12 +213,15 @@ Record StrictPartialHeap3 (h: BinTree Z Z): Prop := {
         BinaryTree.step_l h v yl -> 
         (v <= yl)%Z)) /\
     (* 其他所有节点都满足堆的性质 *)
-    (forall x y: Z,
-      x <> v -> 
-      (BinaryTree.step_l h x y \/ BinaryTree.step_r h x y) -> 
-      (x <= y)%Z);
+    (forall v2, (h.(vvalid) v2 /\ (* v必须是合法节点 *)
+    (* v必须有右孩子且大于右孩子，左孩子如果存在则不大于左孩子 *)
+    (exists yr: Z,
+      BinaryTree.step_r h v2 yr /\ 
+      (v2 > yr)%Z /\
+      (forall yl: Z, 
+        BinaryTree.step_l h v2 yl -> 
+        (v2 <= yl)%Z))) -> (v2 = v)))
 }.
-
 
 Theorem strict_partial_heap_classification:
   forall h: BinTree Z Z,
@@ -496,15 +542,87 @@ Definition move_down_in_partial_heap: StateRelMonad.M (BinTree Z Z) unit :=
         (v > yr)%Z /\
         (forall yl, BinaryTree.step_l bt1 v yl -> (v <= yl)%Z) /\
         (swap_nodes v yr) bt1 tt bt2)).
-
-
-
  
  (** ----------------------------------------------------- **)
  (**   辅助引理1: 处理 StrictPartialHeap2 交换后的情况   **)
  (** ----------------------------------------------------- **)
+
+ Lemma uni_strictheap3:
+ forall bt1 (v yr : Z),
+   StrictPartialHeap3 bt1 ->
+   (* v 与 yr 就是"唯一违反堆性质"的父与其右孩子 *)
+   BinaryTree.vvalid Z Z bt1 v ->
+   BinaryTree.vvalid Z Z bt1 yr ->
+   BinaryTree.step_r bt1 v yr ->
+   (v > yr)%Z ->
+   (forall yl, BinaryTree.step_l bt1 v yl -> (v <= yl)%Z) ->
+   (BinaryTree.vvalid Z Z bt1 v ->
+   (BinaryTree.vvalid Z Z bt1 v /\ (* v必须是合法节点 *)
+    (* v必须有右孩子且大于右孩子，左孩子如果存在则不大于左孩子 *)
+    (exists yr: Z,
+      BinaryTree.step_r bt1 v yr /\ 
+      (v > yr)%Z /\
+      (forall yl: Z, 
+        BinaryTree.step_l bt1 v yl -> 
+        (v <= yl)%Z)))).
+Proof.
+intros bt1 v yr H H0 H1 H2 H3 H4.
+destruct H as [H].
+destruct H as [].
+assert (x = v).
+{
+  destruct H as [H].
+  destruct H5 as [].
+  assert (BinaryTree.vvalid Z Z bt1 v /\
+  (exists yr : Z,
+     BinaryTree.step_r bt1 v yr /\
+     (v > yr)%Z /\ (forall yl : Z, BinaryTree.step_l bt1 v yl -> (v <= yl)%Z))).
+{
+split.
+- (* 证明第一部分：BinaryTree.vvalid Z Z bt1 v *)
+exact H0.  (* 或 apply H0 *)
+
+- (* 证明第二部分：exists yr... *)
+exists yr.
+split.
++ (* BinaryTree.step_r bt1 v yr *)
+exact H2.
++ split.
+* (* (v > yr)%Z *)
+  exact H3.
+* (* forall yl : Z, BinaryTree.step_l bt1 v yl -> (v <= yl)%Z *)
+  intros yl H_step_l.
+  apply H4.
+  exact H_step_l.
+ }
+ assert (v = x).
+ {
+  apply H6.
+  exact H7.
+ }
+ lia.
+ }
+ intros H6.  (* 引入前提 *)
+ split.
+ - (* 证明第一部分：BinaryTree.vvalid Z Z bt1 v *)
+   exact H6.
  
+ - (* 证明第二部分：exists yr0... *)
+   exists yr.  (* 使用已知的 yr *)
+   split.
+   + (* 证明 BinaryTree.step_r bt1 v yr *)
+     exact H2.
+   + split.
+     * (* 证明 (v > yr)%Z *)
+       exact H3.
+     * (* 证明 forall yl : Z, BinaryTree.step_l bt1 v yl -> (v <= yl)%Z *)
+       exact H4.
+Qed.
+
+
+
 (** 下面是需要的引理：交换后仍是PartialHeap **)
+
 
 Lemma preserve_partial_heap_after_swap_strict2:
   forall bt1 bt2 (v yl : Z),
