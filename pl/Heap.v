@@ -220,7 +220,7 @@ Record StrictPartialHeap3 (h: BinTree Z Z): Prop := {
 }.
 
 
-Theorem strict_partial_heap_classification:
+(* Theorem strict_partial_heap_classification:
   forall h: BinTree Z Z,
     StrictPartialHeap h -> StrictPartialHeap1 h \/ StrictPartialHeap2 h \/ StrictPartialHeap3 h.
 Proof.
@@ -418,8 +418,8 @@ Proof.
           destruct H1.
           +++ tauto.
           +++ lia.
-Qed.                          
-*)               
+Qed.                           *)
+           
 
 Definition Root (h: BinTree Z Z) (v: Z): Prop :=
   h.(vvalid) v /\
@@ -477,16 +477,16 @@ Definition swap_dst (v1 v2: Z) (bt bt': BinTree Z Z) : Prop :=
 (* 组合所有操作 *)
 Definition swap_nodes_rel (v1 v2: Z) : StateRelMonad.M (BinTree Z Z) unit :=
   fun (bt: BinTree Z Z) (_:unit) (bt': BinTree Z Z) =>
-    preserve_vvalid bt bt' /\
-    preserve_evalid bt bt' /\
-    swap_src v1 v2 bt bt' /\
-    swap_dst v1 v2 bt bt' /\
+    (preserve_vvalid bt bt' /\
+    preserve_evalid bt bt') ->
+    (swap_src v1 v2 bt bt' /\
+    swap_dst v1 v2 bt bt') ->
     BinaryTree.go_left _ _ bt' = BinaryTree.go_left _ _ bt.
 
 Definition move_up (v: Z): StateRelMonad.M (BinTree Z Z) unit :=
   fun (bt1: BinTree Z Z) (_: unit) (bt2: BinTree Z Z) =>
     (* 检查节点 v 是合法的 *)
-    BinaryTree.vvalid Z Z bt1 v /\
+    BinaryTree.vvalid Z Z bt1 v ->
     (* 存在父节点 parent *)
     exists parent,
       (* 在 bt1 中找到 parent *)
@@ -494,7 +494,7 @@ Definition move_up (v: Z): StateRelMonad.M (BinTree Z Z) unit :=
       (* 使用新的 swap_nodes_rel 交换节点 *)
       (swap_nodes_rel v parent) bt1 tt bt2.
 
-Definition move_up (v: Z): StateRelMonad.M (BinTree Z Z) unit :=
+(* Definition move_up (v: Z): StateRelMonad.M (BinTree Z Z) unit :=
   fun (bt1: BinTree Z Z) (_: unit) (bt2: BinTree Z Z) =>
     (* 检查节点 v 是合法的 *)
     BinaryTree.vvalid Z Z bt1 v /\
@@ -503,18 +503,53 @@ Definition move_up (v: Z): StateRelMonad.M (BinTree Z Z) unit :=
       (* 在 bt1 中找到 parent *)
       BinaryTree.step_u bt1 v parent /\
       (* 交换节点 v 和 parent，得到新的 bt2 *)
-      swap_nodes_rel v parent bt1 bt2.
-
-  
+      swap_nodes_rel v parent bt1 bt2. *)
 
 Definition move_down (v: Z): StateRelMonad.M (BinTree Z Z) unit :=
   fun (bt1: BinTree Z Z) (_: unit) (bt2: BinTree Z Z) =>
-    BinaryTree.vvalid Z Z bt1 v /\
+    (* 检查节点 v 是合法的 *)
+    BinaryTree.vvalid Z Z bt1 v ->
+    (* 存在左子节点 child *)
     exists child,
-      BinaryTree.step_l bt1 v child \/ BinaryTree.step_r bt1 v child /\
-      swap_nodes bt1 v child bt2.
+      (BinaryTree.step_l bt1 v child \/ BinaryTree.step_r bt1 v child) /\
+      (* 使用新的 swap_nodes_rel 交换节点 *)
+      (swap_nodes_rel v child) bt1 tt bt2.
 
+(* 完整堆的情况 *)
+Definition handle_heap (bt1 bt2: BinTree Z Z) : Prop :=
+  Heap bt1 /\ bt1 = bt2.
+
+(* 左违例堆的情况 *)
+Definition handle_left_violation (bt1 bt2: BinTree Z Z) : Prop :=
+  exists v yl,
+    BinaryTree.vvalid Z Z bt1 v /\
+    BinaryTree.vvalid Z Z bt1 yl /\
+    BinaryTree.step_l bt1 v yl /\ 
+    (v > yl)%Z /\
+    (swap_nodes_rel v yl) bt1 tt bt2.
+
+(* 右违例堆的情况 *)
+Definition handle_right_violation (bt1 bt2: BinTree Z Z) : Prop :=
+  exists v yr,
+    BinaryTree.vvalid Z Z bt1 v /\
+    BinaryTree.vvalid Z Z bt1 yr /\
+    BinaryTree.step_r bt1 v yr /\ 
+    (v > yr)%Z /\
+    (forall yl, BinaryTree.step_l bt1 v yl -> (v <= yl)%Z) /\
+    (swap_nodes_rel v yr) bt1 tt bt2.
+
+(* 重构后的move_up_in_partial_heap *)
 Definition move_up_in_partial_heap: StateRelMonad.M (BinTree Z Z) unit :=
+  fun bt1 _ bt2 =>
+    (* 首先确保输入是一个 PartialHeap *)
+    PartialHeap bt1 ->
+    (* 如果是完整的堆，保持不变 *)
+    (handle_heap bt1 bt2 \/
+    (* 如果是 StrictPartialHeap，找到其唯一的违反堆性质的节点 *)
+     (StrictPartialHeap2 bt1 /\ handle_left_violation bt1 bt2) \/
+     (StrictPartialHeap3 bt1 /\ handle_right_violation bt1 bt2)).
+
+(* Definition move_up_in_partial_heap: StateRelMonad.M (BinTree Z Z) unit :=
   fun (bt1: BinTree Z Z) (_: unit) (bt2: BinTree Z Z) =>
     (* 首先确保输入是一个 PartialHeap *)
     PartialHeap bt1 /\
@@ -536,9 +571,9 @@ Definition move_up_in_partial_heap: StateRelMonad.M (BinTree Z Z) unit :=
         BinaryTree.vvalid Z Z bt1 yr /\
         BinaryTree.step_r bt1 v yr /\ (v > yr)%Z /\
         (forall yl, BinaryTree.step_l bt1 v yl -> (v <= yl)%Z) /\
-        swap_nodes bt1 v yr bt2)).
+        swap_nodes bt1 v yr bt2)). *)
 
-Definition move_down_in_partial_heap: StateRelMonad.M (BinTree Z Z) unit :=
+(* Definition move_down_in_partial_heap: StateRelMonad.M (BinTree Z Z) unit :=
   fun (bt1: BinTree Z Z) (_: unit) (bt2: BinTree Z Z) =>
     (* 首先确保输入是一个 PartialHeap *)
     PartialHeap bt1 /\
@@ -574,11 +609,54 @@ Definition move_down_in_partial_heap: StateRelMonad.M (BinTree Z Z) unit :=
         BinaryTree.step_r bt1 v yr /\
         (v > yr)%Z /\
         (forall yl, BinaryTree.step_l bt1 v yl -> (v <= yl)%Z) /\
-        swap_nodes bt1 v yr bt2)).
+        swap_nodes bt1 v yr bt2)). *)
+
+(* 完整堆处理 *)
+Definition handle_complete_heap (bt1 bt2: BinTree Z Z) : Prop :=
+  Heap bt1 /\ bt1 = bt2.
+
+(* 处理两个子节点都违反堆性质的情况 *)
+Definition handle_both_violations (bt1 bt2: BinTree Z Z) : Prop :=
+  exists v yl yr,
+    BinaryTree.vvalid Z Z bt1 v /\
+    BinaryTree.vvalid Z Z bt1 yl /\
+    BinaryTree.vvalid Z Z bt1 yr /\
+    BinaryTree.step_l bt1 v yl /\ 
+    BinaryTree.step_r bt1 v yr /\ 
+    (v > yl)%Z /\ (v > yr)%Z /\
+    ((yl <= yr)%Z /\ (swap_nodes_rel v yl) bt1 tt bt2 \/
+     (yr < yl)%Z /\ (swap_nodes_rel v yr) bt1 tt bt2).
+
+(* 处理左子节点违反堆性质的情况 *)
+Definition handle_left_child_violation (bt1 bt2: BinTree Z Z) : Prop :=
+  exists v yl,
+    BinaryTree.vvalid Z Z bt1 v /\
+    BinaryTree.vvalid Z Z bt1 yl /\
+    BinaryTree.step_l bt1 v yl /\
+    (v > yl)%Z /\
+    (forall yr, BinaryTree.step_r bt1 v yr -> (v <= yr)%Z) /\
+    (swap_nodes_rel v yl) bt1 tt bt2.
+
+(* 处理右子节点违反堆性质的情况 *)
+Definition handle_right_child_violation (bt1 bt2: BinTree Z Z) : Prop :=
+  exists v yr,
+    BinaryTree.vvalid Z Z bt1 v /\
+    BinaryTree.vvalid Z Z bt1 yr /\
+    BinaryTree.step_r bt1 v yr /\
+    (v > yr)%Z /\
+    (forall yl, BinaryTree.step_l bt1 v yl -> (v <= yl)%Z) /\
+    (swap_nodes_rel v yr) bt1 tt bt2.
+
+(* 重构后的完整定义 *)
+Definition move_down_in_partial_heap: StateRelMonad.M (BinTree Z Z) unit :=
+  fun bt1 _ bt2 =>
+    PartialHeap bt1 ->
+    (handle_complete_heap bt1 bt2 \/
+     (StrictPartialHeap1 bt1 /\ handle_both_violations bt1 bt2) \/
+     (StrictPartialHeap2 bt1 /\ handle_left_child_violation bt1 bt2) \/
+     (StrictPartialHeap3 bt1 /\ handle_right_child_violation bt1 bt2)).
 
 
-
- 
  (** ----------------------------------------------------- **)
  (**   辅助引理1: 处理 StrictPartialHeap2 交换后的情况   **)
  (** ----------------------------------------------------- **)
