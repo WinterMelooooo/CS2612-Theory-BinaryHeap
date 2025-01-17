@@ -317,7 +317,11 @@ Admitted.
                 +++ apply H1.
 
 Qed. *)
-
+Theorem inverse_strict_partial_heap_classification:
+  forall h: BinTree Z Z,
+    StrictPartialHeap1 h \/ StrictPartialHeap2 h \/ StrictPartialHeap3 h -> StrictPartialHeap h.
+Proof.
+Admitted.
 
 Theorem partial_heap_classification:
   forall h: BinTree Z Z,
@@ -424,7 +428,24 @@ Admitted.
           +++ tauto.
           +++ lia.
 Qed.                           *)
-                
+
+Theorem inverse_partial_heap_classification:
+  forall h: BinTree Z Z,
+    StrictPartialHeap h \/ Heap h -> PartialHeap h.
+Proof.
+Admitted.
+
+Theorem eq_PH_SHH:
+  forall h: BinTree Z Z,
+    PartialHeap h <-> StrictPartialHeap h \/ Heap h.
+Proof.
+Admitted.
+
+Theorem eq_SH_SH123:
+  forall h: BinTree Z Z,
+    StrictPartialHeap h <-> StrictPartialHeap1 h \/ StrictPartialHeap2 h \/ StrictPartialHeap3 h.
+Proof.
+Admitted.
 
 Definition Root (h: BinTree Z Z) (v: Z): Prop :=
   h.(vvalid) v ->
@@ -443,11 +464,23 @@ Definition preserve_evalid (bt bt': BinTree Z Z) : Prop :=
   BinaryTree.evalid _ _ bt' == BinaryTree.evalid _ _ bt.
 
 (* 交换源节点 *)
-Definition swap_src (v1 v2: Z) (bt bt': BinTree Z Z) : Prop :=
-  forall e, BinaryTree.src _ _ bt' e = 
-    if Z.eq_dec (BinaryTree.src _ _ bt e) v1 then v2 
-    else if Z.eq_dec (BinaryTree.src _ _ bt e) v2 then v1 
-    else BinaryTree.src _ _ bt e.
+Definition swap_src (v1 v2: Z) (bt bt': BinTree Z Z) : Prop := 
+  (forall e, 
+    BinaryTree.src _ _ bt' e = 
+      if Z.eq_dec (BinaryTree.src _ _ bt e) v1 then v2 
+      else if Z.eq_dec (BinaryTree.src _ _ bt e) v2 then v1 
+      else BinaryTree.src _ _ bt e) /\
+  
+  (* Ensure step relations are updated accordingly *)
+  (forall x y, 
+    BinaryTree.step_l bt x y <-> 
+    BinaryTree.step_l bt' (if Z.eq_dec x v1 then v2 else if Z.eq_dec x v2 then v1 else x) 
+                       (if Z.eq_dec y v1 then v2 else if Z.eq_dec y v2 then v1 else y)) /\
+  
+  (forall x y, 
+    BinaryTree.step_r bt x y <-> 
+    BinaryTree.step_r bt' (if Z.eq_dec x v1 then v2 else if Z.eq_dec x v2 then v1 else x) 
+                       (if Z.eq_dec y v1 then v2 else if Z.eq_dec y v2 then v1 else y)).
 
 (* 交换目标节点 *)
 Definition swap_dst (v1 v2: Z) (bt bt': BinTree Z Z) : Prop :=
@@ -547,7 +580,7 @@ Definition move_down_in_partial_heap: StateRelMonad.M (BinTree Z Z) unit :=
  (**   辅助引理1: 处理 StrictPartialHeap2 交换后的情况   **)
  (** ----------------------------------------------------- **)
 
-Lemma uni_strictheap3:
+ Lemma uni_strictheap3:
  forall bt1 (v yr : Z),
    StrictPartialHeap3 bt1 ->
    (* v 与 yr 就是"唯一违反堆性质"的父与其右孩子 *)
@@ -636,39 +669,198 @@ Lemma preserve_partial_heap_after_swap_strict2:
 Proof.
 Admitted.
 
+Lemma simplify_if :
+  forall (v yr : Z),
+    (if Z.eq_dec v v then yr else if Z.eq_dec v yr then v else v) = yr.
+Proof.
+intros v yr.
+  
+(* Destruct the first Z.eq_dec v v *)
+destruct (Z.eq_dec v v) as [H_eq | H_neq].
+
+- (* Case 1: v = v (which is always true) *)
+  (* The expression simplifies to yr *)
+  reflexivity.
+
+- (* Case 2: v <> v (impossible, contradiction) *)
+  exfalso. apply H_neq. reflexivity.
+Qed.
+
+Lemma simplify_if2 :
+  forall (v yr : Z),
+    (if Z.eq_dec yr v
+    then yr
+    else if Z.eq_dec yr yr then v else yr) = v.
+Proof.
+intros v yr.
+  
+  (* Destruct the first Z.eq_dec yr v *)
+  destruct (Z.eq_dec yr v) as [H_eq | H_neq].
+  
+  - (* Case 1: yr = v *)
+    (* In this case, the expression simplifies to yr, which is v *)
+    lia.
+  
+  - (* Case 2: yr <> v *)
+    (* The second if is always true, so the expression simplifies to v *)
+    destruct (Z.eq_dec yr yr) as [H_eq' | H_neq'].
+    + (* Case 2a: yr = yr (trivially true) *)
+      reflexivity.
+    + (* Case 2b: yr <> yr (impossible, contradiction) *)
+      exfalso. apply H_neq'. reflexivity.
+Qed.
+
+
  (** ----------------------------------------------------- **)
  (**   辅助引理2: 处理 StrictPartialHeap3 交换后的情况   **)
  (** ----------------------------------------------------- **)
 
- Lemma preserve_partial_heap_after_swap_strict3_weak:
-   forall bt1 bt2 (v yr : Z),
-     (* 假设 bt1 是 StrictPartialHeap3 *)
-     StrictPartialHeap3 bt1 ->
-     (* v 与 yr 就是"唯一违反堆性质"的父与其右孩子 *)
-     BinaryTree.vvalid Z Z bt1 v ->
-     BinaryTree.vvalid Z Z bt1 yr ->
-     BinaryTree.step_r bt1 v yr ->
-     (v > yr)%Z ->
-     (swap_nodes v yr) bt1 tt bt2 ->
-     (* 结论：交换后 bt2 仍然是 PartialHeap *)
-     StrictPartialHeap bt2.
- Proof.
- Admitted.
+Lemma preserve_partial_heap_after_swap_strict3:
+  forall bt1 bt2 (v yr : Z),
+    (* 假设 bt1 是 StrictPartialHeap3 *)
+    StrictPartialHeap3 bt1 ->
+    (* v 与 yr 就是"唯一违反堆性质"的父与其右孩子 *)
+    BinaryTree.vvalid Z Z bt1 v ->
+    BinaryTree.vvalid Z Z bt1 yr ->
+    BinaryTree.step_r bt1 v yr ->
+    (v > yr)%Z ->
+    (swap_nodes v yr) bt1 tt bt2 ->
+    (* 结论：交换后 bt2 仍然是 PartialHeap *)
+    PartialHeap bt2.
+Proof.
+  intros bt1 bt2 v yr H_heap Hv_valid_v Hv_valid_yr H_step H_gt H_swap.
 
- Lemma preserve_partial_heap_after_swap_strict3:
-   forall bt1 bt2 (v yr : Z),
-     (* 假设 bt1 是 StrictPartialHeap3 *)
-     StrictPartialHeap3 bt1 ->
-     (* v 与 yr 就是"唯一违反堆性质"的父与其右孩子 *)
-     BinaryTree.vvalid Z Z bt1 v ->
-     BinaryTree.vvalid Z Z bt1 yr ->
-     BinaryTree.step_r bt1 v yr ->
-     (v > yr)%Z ->
-     (swap_nodes v yr) bt1 tt bt2 ->
-     (* 结论：交换后 bt2 仍然是 PartialHeap *)
-     PartialHeap bt2.
- Proof.
-  Admitted.
+  destruct H_heap as [SH].
+  unfold swap_nodes in H_swap.
+  destruct H_swap as [H1[H2[H3[H4[]]]]].
+  unfold swap_src in H3.
+  unfold swap_dst in H4.
+  assert ( BinaryTree.vvalid Z Z bt2 v).
+  - unfold preserve_vvalid in H1. apply H1, Hv_valid_v.
+  - assert ( BinaryTree.vvalid Z Z bt2 yr).
+    + unfold preserve_vvalid in H1. apply H1, Hv_valid_yr.
+    + assert (BinaryTree.step_r bt2 yr v).
+      -- destruct H3 as [H5[H6]].
+         unfold preserve_evalid in H2.
+         apply H3 in H_step.
+         simpl in H_step.
+         assert ((if Z.eq_dec v v
+         then yr
+         else if Z.eq_dec v yr then v else v) = yr) by apply simplify_if.
+         assert ((if Z.eq_dec yr v
+         then yr
+         else if Z.eq_dec yr yr then v else yr) = v) by apply simplify_if2.
+         rewrite H7, H8 in H_step.
+         apply H_step.
+      -- split.
+      Admitted.
+         (* exists v.
+         assert ((exists yr0 : Z,
+         BinaryTree.step_r bt2 v yr0 /\
+         (v > yr0)%Z /\
+         (forall yl : Z,
+          BinaryTree.step_l bt2 v yl -> (v <= yl)%Z))).
+          ---
+         apply H.
+         destruct.
+      * exists v.
+        split.
+        -- apply H.
+        -- split.
+           ++ apply H0.
+           ++ intros B1.
+              assert (BinaryTree.vvalid Z Z bt2 yr).
+              ** apply H, Hv_valid_yr.
+              ** assert (v > yr)%Z by tauto.
+                 assert (BinaryTree.step_r bt2 v yr).
+                 ---apply H_step, .
+                    left.
+                 tauto.
+                 exists yr.
+                 assert ()
+  split.
+  apply NNPP.
+  intro.
+  destruct swap_nodes as [].
+  - intros B0. destruct SH.
+    destruct H.
+    apply NNPP.
+    intro.
+    apply SH.   
+
+  (* Now, we have the violation node v' and its properties. *)
+  apply v in v'.
+  (* destruct Hx as [H_valid_x [H_step_r_and_gt H_other_x]]. *)
+
+  destruct (classic (v = x)) as [H_eq_v | H_diff].
+  unfold swap_nodes in H_swap.
+  destruct H_swap as [].
+  destruct H0 as [].
+  destruct H1 as [].
+  -
+    split.
+    exists v.
+
+    intros B1.
+    assert (BinaryTree.vvalid Z Z bt2 yr).
+    -- apply H, Hv_valid_yr.
+    -- assert (v > yr)%Z by tauto.
+       assert (BinaryTree.step_r bt2 v yr).
+       ---apply H_step, .
+          left.
+       tauto.
+       exists yr.
+       assert ()
+    
+    -- tauto.
+    exists yr. *)
+ (** ----------------------------------------------------- **)
+ (**   辅助引理2: 处理 StrictPartialHeap3 交换后的情况   **)
+ (** ----------------------------------------------------- **)
+ 
+Lemma preserve_partial_heap_after_swap_strict3_2:
+  forall bt1 bt2 (v yr : Z),
+    (* 假设 bt1 是 StrictPartialHeap3 *)
+    StrictPartialHeap3 bt1 ->
+    (* v 与 yr 就是"唯一违反堆性质"的父与其右孩子 *)
+    BinaryTree.vvalid Z Z bt1 v ->
+    BinaryTree.vvalid Z Z bt1 yr ->
+    BinaryTree.step_r bt1 v yr ->
+    (v > yr)%Z ->
+    (swap_nodes v yr) bt1 tt bt2 ->
+    (* 结论：交换后 bt2 仍然是 PartialHeap *)
+    PartialHeap bt2.
+Proof.
+(* intros bt1 bt2 v yr H_heap Hv_valid_v Hv_valid_yr H_step H_gt H_swap.
+
+destruct H_heap as [v' [Hv_valid' [H_step_r_or_l [H_gt' H_other]]]].
+
+(* Now, we have the violation node v' and its properties. *)
+destruct v' as [x Hx].
+destruct Hx as [H_valid_x [H_step_r_and_gt H_other_x]].
+
+destruct (classic (v = x)) as [H_eq_v | H_diff].
+unfold swap_nodes in H_swap.
+destruct H_swap as [].
+destruct H0 as [].
+destruct H1 as [].
+destruct H2 as [].
+
+- 
+  split.
+  intros v1 v2 [H_valid_v1 H_step_v1] [H_valid_v2 H_step_v2].
+
+  (* 进一步分解存在量词 *)
+  destruct H_step_v1 as [y1 [H_step_v1' H_gt_v1_y1]].
+  destruct H_step_v2 as [y2 [H_step_v2' H_gt_v2_y2]].
+
+  apply H.
+  
+(* Case 2: If the violation occurs between different nodes, we rely on the uniqueness property. *)
+- (* The uniqueness of the violation in StrictPartialHeap3 implies no new violation can occur. *)
+apply H_other.
+Qed. *)
+Admitted.
  
  (** ----------------------------------------------------- **)
  (**   主定理: move_up_in_partial_heap 后仍是 PartialHeap  **)
