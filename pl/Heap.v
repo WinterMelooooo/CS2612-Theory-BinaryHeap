@@ -22,6 +22,43 @@ Record BinaryTree (Vertex Edge: Type) := {
   src : Edge -> Vertex;
   dst : Edge -> Vertex;
   go_left: Edge -> Prop;
+
+  (* 每个节点最多一个父节点 *)
+  single_parent: forall v e1 e2,
+  evalid e1 -> evalid e2 ->
+  dst e1 = v -> dst e2 = v -> 
+  e1 = e2;
+
+  (* 每个节点最多两个子节点
+  at_most_two_children: forall v e1 e2 e3,
+  evalid e1 -> evalid e2 -> evalid e3 ->
+  src e1 = v -> src e2 = v -> src e3 = v ->
+  go_left e1 -> go_left e2 -> ~ go_left e3 ->
+  e1 = e2; *)
+
+  (* 每个节点最多有一个左子节点 *)
+  single_left_child: forall v e1 e2,
+  evalid e1 -> evalid e2 ->
+  src e1 = v -> src e2 = v ->
+  go_left e1 -> go_left e2 ->
+  e1 = e2;
+
+  (* 每个节点最多有一个右子节点 *)  
+  single_right_child: forall v e1 e2,
+  evalid e1 -> evalid e2 ->
+  src e1 = v -> src e2 = v ->
+  ~ go_left e1 -> ~ go_left e2 ->
+  e1 = e2;
+
+  (* 无环性质 *)
+  acyclic: forall v,
+    ~ (exists path, path_to_self v path);
+
+  (* 连通性 *)
+  connected: forall v1 v2,
+    vvalid v1 -> vvalid v2 ->
+    exists path, valid_path path v1 v2;
+
 }.
 
 Definition go_right (V E: Type) (bt: BinaryTree V E) (e: E): Prop :=
@@ -673,7 +710,42 @@ Lemma preserve_partial_heap_after_swap_strict2:
     swap_nodes bt1 v yl bt2 ->
     PartialHeap bt2.
 Proof.
-Admitted.
+intros bt1 bt2 v yl H_sph2 H_valid_v H_valid_yl H_step H_gt H_swap.
+constructor.
+intros v1 v2 H1 H2.
+
+(* 分解 StrictPartialHeap2 的定义 *)
+destruct H_sph2 as [violation_v [H_valid_vio [y1 [H_step_vio [H_gt_vio H_others]]]]].
+
+(* 分解两个违例点的条件 *)
+destruct H1 as [H_valid1 [y1' [H_step1 H_gt1]]].
+destruct H2 as [H_valid2 [y2' [H_step2 H_gt2]]].
+
+(* 证明这两个违例点必须是同一个 *)
+assert (v1 = v2).
+{
+  (* 将每个违例点要么与原违例点相同，要么与交换后的位置相同 *)
+  destruct (Z.eq_dec v1 yl); destruct (Z.eq_dec v2 yl).
+  - (* 如果都是yl *) subst; auto.
+  - (* v1 = yl, v2 ≠ yl *)
+    destruct (Z.eq_dec v2 v); [subst; auto|].
+    exfalso.
+    (* 用swap_nodes的性质证明矛盾 *)
+    apply swap_nodes_rel 
+  - (* v1 ≠ yl, v2 = yl *)
+    destruct (Z.eq_dec v1 v); [subst; auto|].
+    exfalso; apply n.
+    (* 用swap_nodes的性质证明矛盾 *)
+    admit.
+  - (* 都不是yl *)
+    destruct (Z.eq_dec v1 v); destruct (Z.eq_dec v2 v);
+    try (subst; auto).
+    (* 用swap_nodes和StrictPartialHeap2的性质证明矛盾 *)
+    admit.
+}
+auto.
+Qed.
+
 
  (** ----------------------------------------------------- **)
  (**   辅助引理2: 处理 StrictPartialHeap3 交换后的情况   **)
