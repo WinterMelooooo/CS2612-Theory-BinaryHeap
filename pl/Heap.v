@@ -547,7 +547,7 @@ Definition move_down_in_partial_heap: StateRelMonad.M (BinTree Z Z) unit :=
  (**   辅助引理1: 处理 StrictPartialHeap2 交换后的情况   **)
  (** ----------------------------------------------------- **)
 
- Lemma uni_strictheap3:
+Lemma uni_strictheap3:
  forall bt1 (v yr : Z),
    StrictPartialHeap3 bt1 ->
    (* v 与 yr 就是"唯一违反堆性质"的父与其右孩子 *)
@@ -639,7 +639,22 @@ Admitted.
  (** ----------------------------------------------------- **)
  (**   辅助引理2: 处理 StrictPartialHeap3 交换后的情况   **)
  (** ----------------------------------------------------- **)
- 
+
+ Lemma preserve_partial_heap_after_swap_strict3_weak:
+   forall bt1 bt2 (v yr : Z),
+     (* 假设 bt1 是 StrictPartialHeap3 *)
+     StrictPartialHeap3 bt1 ->
+     (* v 与 yr 就是"唯一违反堆性质"的父与其右孩子 *)
+     BinaryTree.vvalid Z Z bt1 v ->
+     BinaryTree.vvalid Z Z bt1 yr ->
+     BinaryTree.step_r bt1 v yr ->
+     (v > yr)%Z ->
+     (swap_nodes v yr) bt1 tt bt2 ->
+     (* 结论：交换后 bt2 仍然是 PartialHeap *)
+     StrictPartialHeap bt2.
+ Proof.
+ Admitted.
+
  Lemma preserve_partial_heap_after_swap_strict3:
    forall bt1 bt2 (v yr : Z),
      (* 假设 bt1 是 StrictPartialHeap3 *)
@@ -653,7 +668,7 @@ Admitted.
      (* 结论：交换后 bt2 仍然是 PartialHeap *)
      PartialHeap bt2.
  Proof.
-Admitted.
+  Admitted.
  
  (** ----------------------------------------------------- **)
  (**   主定理: move_up_in_partial_heap 后仍是 PartialHeap  **)
