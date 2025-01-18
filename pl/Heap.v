@@ -194,7 +194,7 @@ Record StrictPartialHeap1 (h: BinTree Z Z): Prop := {
       BinaryTree.step_r h v yr /\ 
       (v > yl)%Z /\ 
       (v > yr)%Z)) /\ 
-      (forall v2, (exists y2, ((BinaryTree.step_l h v2 y2 \/ BinaryTree.step_l h v2 y2) /\ (v2 > y2)%Z)) -> (v2 = v))
+      (forall v2, (exists y2, ((BinaryTree.step_l h v2 y2 \/ BinaryTree.step_r h v2 y2) /\ (v2 > y2)%Z)) -> (v2 = v))
 }.
 
 
@@ -407,101 +407,101 @@ Qed.
 
 
 
-    (* intros.
-    
-    (* 分解 StrictPartialHeap 的假设 *)
-    destruct H as [v [Hv_valid [ [y [Hstep Hcomp] ] Hothers ] ] ].
-    
-    (* Hstep: BinaryTree.step_l h v y \/ BinaryTree.step_r h v y
-       Hcomp: v > y *)
-    destruct v.
-    destruct H.
-    destruct H0.
-    destruct H0.
-    destruct H0.
-    destruct H0.
-    (*情况1：左儿子比父亲小，即StrictPartialHeap1或StrictPartialHeap2*)
-    - destruct (classic (exists k, BinaryTree.step_r h x k /\ (x > k)%Z)) 
-    as [ [k [Hstep_r_e_r Hv_gt_e_r]] | Hno_right_violation ].
-      (*StrictPartialHeap1的情况*)
-      + left.
-      split.
-      exists x.
-      split.
-          ++ apply H.
-          ++ split.
-              +++ exists x0, k.
-                  tauto.
-              +++ apply H1.
-      (*StrictPartialHeap3的情况*)
-      + right. left.
-        split.
-        exists x.
-        split.
-            ++ apply H.
-            ++ split.
-                +++ exists x0.
-                    split.
-                    ++++ apply H0.
-                    ++++ split.
-                      +++++ apply H2.
-                      +++++
-                        intros.
-                        assert (Hno_right_violation' : forall k : Z, ~ (BinaryTree.step_r h x k /\ (x > k)%Z)).
-                        {
-                          intros k [Hrl Hgt].
-                          apply Hno_right_violation.
-                          exists k. split; assumption.
-                        }
-                        specialize (Hno_right_violation' yr).
-                        tauto.
-
-                +++ apply H1.
-    (*情况2：右儿子比父亲小，即StrictPartialHeap1或StrictPartialHeap3*)
-    - destruct (classic (exists k, BinaryTree.step_l h x k /\ (x > k)%Z)) 
-    as [ [k [Hstep_r_e_r Hv_gt_e_r]] | Hno_left_violation ].
-      (*StrictPartialHeap1的情况*)
-      + left.
-      split.
-      exists x.
-      split.
-          ++ apply H.
-          ++ split.
-              +++ exists k, x0.
-                  tauto.
-              +++ apply H1.
-      (*StrictPartialHeap3的情况*)
-      + right. right.
-        split.
-        exists x.
-        split.
-            ++ apply H.
-            ++ split.
-                +++ exists x0.
-                    split.
-                    ++++ apply H0.
-                    ++++ split.
-                      +++++ apply H2.
-                      +++++
-                        intros.
-                        assert (Hno_left_violation' : forall k : Z, ~ (BinaryTree.step_l h x k /\ (x > k)%Z)).
-                        {
-                          intros k [Hrl Hgt].
-                          apply Hno_left_violation.
-                          exists k. split; assumption.
-                        }
-                        specialize (Hno_left_violation' yl).
-                        tauto.
-
-                +++ apply H1.
-
-Qed. *)
-
 Theorem inverse_strict_partial_heap_classification:
   forall h: BinTree Z Z,
     StrictPartialHeap1 h \/ StrictPartialHeap2 h \/ StrictPartialHeap3 h -> StrictPartialHeap h.
 Proof.
-Admitted.
+  intros.
+  split.
+  destruct H as [H_S1 | [H_S2 | H_S3]].
+  (*StrictPartialHeap1*)
+  - destruct H_S1.
+    destruct exists_violation_strict4.
+    exists x. 
+    split.
+    + split.
+      ++ tauto.
+      ++ destruct H.
+         destruct H.
+         destruct H1 as [y1 [y2 H2] H1].
+         exists y1.
+         tauto.
+    + intros v_eq.
+      destruct H.
+      specialize (H0 v_eq).
+      intros.
+      destruct H1.
+      destruct H0.
+      ++ destruct H2.
+         exists x0.
+         apply H0.
+      ++ reflexivity.
+  (*StrictPartialHeap2*)
+  - destruct H_S2.
+    destruct exists_violation_strict4.
+    exists x.
+    split.
+    + split.
+      ++ destruct H.
+         destruct H.
+         destruct H.
+         destruct H.
+         destruct H.
+         destruct H.     
+         tauto.
+      ++ destruct H.
+         exists x0.
+         tauto.
+    + intros.
+      destruct H0.
+      destruct H.
+      destruct H.
+      specialize (H2 v2).
+      destruct H2.
+      ++ destruct H1.
+         exists x1.
+         destruct H1 as [[H_l|H_r] H_gt].
+         +++ tauto.
+         +++ exfalso.
+             specialize (forall_no_violation_right0 v2 x1).
+             destruct forall_no_violation_right0.
+             ++++ tauto.
+             ++++ tauto.
+      ++ reflexivity.
+  (*StrictPartialHeap3*)
+  - destruct H_S3.
+    destruct exists_violation_strict4.
+    exists x.
+    split.
+    + split.
+      ++ destruct H.
+         destruct H.
+         destruct H.
+         destruct H.
+         destruct H.
+         destruct H.     
+         tauto.
+      ++ destruct H.
+         exists x0.
+         tauto.
+    + intros.
+      destruct H0.
+      destruct H.
+      destruct H.
+      specialize (H2 v2).
+      destruct H2.
+      ++ destruct H1.
+         exists x1.
+         destruct H1 as [[H_l|H_r] H_gt].
+         +++ exfalso.
+             specialize (forall_no_violation_left0 v2 x1).
+             destruct forall_no_violation_left0.
+             ++++ tauto.
+             ++++ tauto.
+         +++ tauto.
+      ++ reflexivity.
+Qed.     
+
 
 Theorem partial_heap_classification:
   forall h: BinTree Z Z,
