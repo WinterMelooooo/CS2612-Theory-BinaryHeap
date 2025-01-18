@@ -164,6 +164,7 @@ Record StrictPartialHeap (h: BinTree Z Z): Prop := {
 }.
 
 (*大于两个孩子*)
+(*
 Record StrictPartialHeap1 (h: BinTree Z Z): Prop := {
   (* 存在一个节点v同时违反左右子节点的堆性质 *)
   exists_violation_strict1: exists v: Z,
@@ -180,7 +181,22 @@ Record StrictPartialHeap1 (h: BinTree Z Z): Prop := {
         BinaryTree.step_r h v2 yr /\ 
         (v2 > yl)%Z /\ 
         (v2 > yr)%Z)) -> (v2 = v))
+}.*)
+
+
+Record StrictPartialHeap1 (h: BinTree Z Z): Prop := {
+  (* 存在一个节点v同时违反左右子节点的堆性质 *)
+  exists_violation_strict1: exists v: Z,
+    (h.(vvalid) v /\ (* v必须是合法节点 *)
+    (* v必须同时有左右子节点，并且比两个子节点都大 *)
+    (exists yl yr: Z,
+      BinaryTree.step_l h v yl /\ 
+      BinaryTree.step_r h v yr /\ 
+      (v > yl)%Z /\ 
+      (v > yr)%Z)) /\ 
+      (forall v2, (exists y2, ((BinaryTree.step_l h v2 y2 \/ BinaryTree.step_l h v2 y2) /\ (v2 > y2)%Z)) -> (v2 = v))
 }.
+
 
 Record StrictPartialHeap2 (h: BinTree Z Z): Prop := {
   forall_no_violation_right: forall v yr: Z,
@@ -228,13 +244,20 @@ Proof.
          specialize (H0 v1).
          intros.
          destruct H2.
-         destruct H4 as [yl [yr [Hstep_l [Hstep_r [H_gt_yl H_gt_yr]]]]].
          destruct H0.
-          +++ split.
-              ++++ apply H2.
-              ++++ exists yl.
-                   tauto.
-          +++ reflexivity.
+         +++ split.
+            ++++ destruct H2 as [[H4 | H5] H_gt].
+                 destruct H4.
+                 destruct H0.
+                 destruct H0.
+                 tauto.
+                 destruct H5.
+                 destruct H0.
+                 destruct H0.
+                 tauto.
+            ++++ exists x1.
+                 tauto.
+          +++ tauto.
       (*StrictPartialHeap2的情况*)
       + right. left.
         pose proof not_ex_all_not Z _ H_right_violation.
@@ -308,13 +331,20 @@ Proof.
          specialize (H0 v1).
          intros.
          destruct H2.
-         destruct H4 as [yl [yr [Hstep_l [Hstep_r [H_gt_yl H_gt_yr]]]]].
          destruct H0.
-          +++ split.
-              ++++ apply H2.
-              ++++ exists yl.
-                   tauto.
-          +++ reflexivity.
+         +++ split.
+            ++++ destruct H2 as [[H4 | H5] H_gt].
+                 destruct H4.
+                 destruct H0.
+                 destruct H0.
+                 tauto.
+                 destruct H5.
+                 destruct H0.
+                 destruct H0.
+                 tauto.
+            ++++ exists x1.
+                 tauto.
+          +++ tauto.
       (*StrictPartialHeap3的情况*)
       + right. right.
         pose proof not_ex_all_not Z _ H_left_violation.
@@ -373,7 +403,7 @@ Proof.
                ++++ intros.
                     tauto.
 
-
+Qed.
 
 
 
