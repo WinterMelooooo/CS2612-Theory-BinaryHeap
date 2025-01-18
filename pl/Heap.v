@@ -156,28 +156,30 @@ Record StrictPartialHeap (h: BinTree Z Z): Prop := {
     exists y: Z, 
     ((BinaryTree.step_l h v y \/ BinaryTree.step_r h v y) /\ (v > y)%Z)) /\
     (
-      forall v2: Z, (h.(vvalid) v /\ (* v必须是合法节点 *)
+      forall v2: Z, (h.(vvalid) v2 /\ (* v必须是合法节点 *)
       exists y: Z, 
-      ((BinaryTree.step_l h v y \/ BinaryTree.step_r h v y) /\ (v > y)%Z)) -> 
+      ((BinaryTree.step_l h v2 y \/ BinaryTree.step_r h v2 y) /\ (v2 > y)%Z)) -> 
       (v2 = v)
     )
 }.
 
+(*大于两个孩子*)
 Record StrictPartialHeap1 (h: BinTree Z Z): Prop := {
   (* 存在一个节点v同时违反左右子节点的堆性质 *)
   exists_violation_strict1: exists v: Z,
+    (h.(vvalid) v /\ (* v必须是合法节点 *)
     (* v必须同时有左右子节点，并且比两个子节点都大 *)
     (exists yl yr: Z,
       BinaryTree.step_l h v yl /\ 
       BinaryTree.step_r h v yr /\ 
       (v > yl)%Z /\ 
-      (v > yr)%Z) /\ (forall v2: Z, (h.(vvalid) v2 /\ (* v必须是合法节点 *)
+      (v > yr)%Z)) /\ (forall v2: Z, (h.(vvalid) v2 /\ (* v必须是合法节点 *)
       (* v必须同时有左右子节点，并且比两个子节点都大 *)
       (exists yl yr: Z,
         BinaryTree.step_l h v2 yl /\ 
         BinaryTree.step_r h v2 yr /\ 
-        (v > yl)%Z /\ 
-        (v > yr)%Z)) -> (v2 = v))
+        (v2 > yl)%Z /\ 
+        (v2 > yr)%Z)) -> (v2 = v))
 }.
 
 Record StrictPartialHeap2 (h: BinTree Z Z): Prop := {
@@ -186,29 +188,195 @@ Record StrictPartialHeap2 (h: BinTree Z Z): Prop := {
   exists_violation_strict2: exists v yl: Z,
     (BinaryTree.step_l h v yl /\ 
       (v > yl)%Z) /\
-    (forall v2, exists yl2,  
-      (BinaryTree.step_l h v2 yl2 /\ 
-        (v2 > yl2)%Z) -> (v2 = v))
+    (forall v2, (exists yl2, (BinaryTree.step_l h v2 yl2 /\ (v2 > yl2)%Z)) -> (v2 = v))
 }.
 
 Record StrictPartialHeap3 (h: BinTree Z Z): Prop := {
   forall_no_violation_left: forall v yl: Z,
     BinaryTree.step_l h v yl -> (v <= yl)%Z;
   exists_violation_strict3: exists v yr: Z,
-    (* v必须有右孩子且大于右孩子，左孩子如果存在则不大于左孩子 *)
     (BinaryTree.step_r h v yr /\ 
       (v > yr)%Z) /\
     (* 其他所有节点都满足堆的性质 *)
-    (forall v2, exists yr2,  
-    (BinaryTree.step_r h v2 yr2 /\ 
-      (v2 > yr2)%Z) -> (v2 = v))
+    (forall v2,( exists yr2, (BinaryTree.step_r h v2 yr2 /\ (v2 > yr2)%Z))-> (v2 = v))
 }.
 
 Theorem strict_partial_heap_classification:
   forall h: BinTree Z Z,
     StrictPartialHeap h -> StrictPartialHeap1 h \/ StrictPartialHeap2 h \/ StrictPartialHeap3 h.
 Proof.
-Admitted.
+  intros.
+  destruct H as [v [Hv_valid [ [y [Hstep Hcomp] ] Hothers ] ] ].
+  destruct v.
+  destruct H.
+  destruct H.
+  destruct H1 as [x0 [H1][H2]].
+  destruct H1.
+  (*存在一个左子节点违反性质*)
+  - destruct (classic (exists k, BinaryTree.step_r h x k /\ (x > k)%Z)) 
+  as [ [k [H_step_r H_vio_r]] | H_right_violation ].
+    (*StrictPartialHeap1的情况*)
+    + left.
+      split.
+      exists x.
+      split.
+      ++ split.
+        +++ tauto.
+        +++ exists x0, k.
+            tauto.
+      ++ intros v1.
+         specialize (H0 v1).
+         intros.
+         destruct H2.
+         destruct H4 as [yl [yr [Hstep_l [Hstep_r [H_gt_yl H_gt_yr]]]]].
+         destruct H0.
+          +++ split.
+              ++++ apply H2.
+              ++++ exists yl.
+                   tauto.
+          +++ reflexivity.
+      (*StrictPartialHeap2的情况*)
+      + right. left.
+        pose proof not_ex_all_not Z _ H_right_violation.
+        simpl in H2.
+        split.
+        ++  intros.
+            specialize (H2 yr).
+            apply not_and_or in H2.
+            destruct (classic (v=x)) as [left|right].
+            +++ destruct H2.  
+                ++++ exfalso.   
+                     apply H2.
+                     rewrite <- left.
+                     tauto.
+                ++++ lia.
+            +++ specialize (H0 v).
+                apply imply_to_or in H0.
+                destruct H0.
+                apply not_and_or in H0.
+                destruct H0.
+                ++++ destruct H4.
+                     destruct H4.
+                     destruct H4. 
+                     tauto.
+                ++++ pose proof not_ex_all_not Z _ H0.
+                     simpl in H5.
+                     specialize (H5 yr).
+                     apply not_and_or in H5.
+                     destruct H5.
+                     +++++ tauto.
+                     +++++ lia.
+                ++++ tauto.
+        ++ exists x, x0.
+           split.
+           +++ tauto.
+           +++ intros v3.
+               specialize (H0 v3).
+               apply imply_to_or in H0.
+               destruct H0.
+               ++++ intros.
+                    apply not_and_or in H0.
+                    destruct H0.
+                    +++++ destruct H4.
+                          destruct H4.
+                          destruct H4.
+                          destruct H4.
+                          destruct H4.
+                          tauto.
+                    +++++ pose proof not_ex_all_not Z _ H0.
+                          simpl in H5.
+                          destruct H4.
+                          specialize (H5 x1).
+                          exfalso.
+                          apply H5.
+                          tauto.
+               ++++ intros.
+                    tauto.
+  (*存在一个右子节点违反性质*)
+  - destruct (classic (exists k, BinaryTree.step_l h x k /\ (x > k)%Z)) 
+  as [ [k [H_step_l H_vio_l]] | H_left_violation ].
+    (*StrictPartialHeap1的情况*)
+    + left.
+      split.
+      exists x.
+      split.
+      ++ split.
+        +++ tauto.
+        +++ exists k, x0.
+            tauto.
+      ++ intros v1.
+         specialize (H0 v1).
+         intros.
+         destruct H2.
+         destruct H4 as [yl [yr [Hstep_l [Hstep_r [H_gt_yl H_gt_yr]]]]].
+         destruct H0.
+          +++ split.
+              ++++ apply H2.
+              ++++ exists yl.
+                   tauto.
+          +++ reflexivity.
+      (*StrictPartialHeap3的情况*)
+      + right. right.
+        pose proof not_ex_all_not Z _ H_left_violation.
+        simpl in H2.
+        split.
+        ++  intros.
+            specialize (H2 yl).
+            apply not_and_or in H2.
+            destruct (classic (v=x)) as [left|right].
+            +++ destruct H2.  
+                ++++ exfalso.   
+                     apply H2.
+                     rewrite <- left.
+                     tauto.
+                ++++ lia.
+            +++ specialize (H0 v).
+                apply imply_to_or in H0.
+                destruct H0.
+                apply not_and_or in H0.
+                destruct H0.
+                ++++ destruct H4.
+                     destruct H4.
+                     destruct H4. 
+                     tauto.
+                ++++ pose proof not_ex_all_not Z _ H0.
+                     simpl in H5.
+                     specialize (H5 yl).
+                     apply not_and_or in H5.
+                     destruct H5.
+                     +++++ tauto.
+                     +++++ lia.
+                ++++ tauto.
+        ++ exists x, x0.
+           split.
+           +++ tauto.
+           +++ intros v3.
+               specialize (H0 v3).
+               apply imply_to_or in H0.
+               destruct H0.
+               ++++ intros.
+                    apply not_and_or in H0.
+                    destruct H0.
+                    +++++ destruct H4.
+                          destruct H4.
+                          destruct H4.
+                          destruct H4.
+                          destruct H4.
+                          tauto.
+                    +++++ pose proof not_ex_all_not Z _ H0.
+                          simpl in H5.
+                          destruct H4.
+                          specialize (H5 x1).
+                          exfalso.
+                          apply H5.
+                          tauto.
+               ++++ intros.
+                    tauto.
+
+
+
+
+
     (* intros.
     
     (* 分解 StrictPartialHeap 的假设 *)
@@ -298,6 +466,7 @@ Admitted.
                 +++ apply H1.
 
 Qed. *)
+
 Theorem inverse_strict_partial_heap_classification:
   forall h: BinTree Z Z,
     StrictPartialHeap1 h \/ StrictPartialHeap2 h \/ StrictPartialHeap3 h -> StrictPartialHeap h.
@@ -1008,57 +1177,6 @@ Record FullHeap (bt: BinTree Z Z) :=
       MaxIndex bt max_index /\
       max_index = root_num
   }.
-
-
-Definition insert_not_swap (v: Z): StateRelMonad.M (BinTree Z Z) Z :=
-  fun (bt1: BinTree Z Z) (v_return: Z) (bt2: BinTree Z Z) =>
-    (* 检查节点 v 是合法的 *)
-    BinaryTree.vvalid Z Z bt2 v /\ 
-    BinaryTree.vvalid Z Z bt1 v_return /\
-    BinaryTree.vvalid Z Z bt2 v_return /\
-    (* v_return 是 v 的父节点 *)
-    BinaryTree.step_u bt2 v v_return /\
-    (* v 是尾节点 *)
-    NumNodes bt2 v = Index bt2 v_return /\
-    (* 其他的节点都一样 *)
-    (forall v1 v2, (BinaryTree.vvalid Z Z bt1 v1 /\ BinaryTree.vvalid Z Z bt1 v2 /\ Index bt1 v1 = Index bt1 v2) ->
-      (v1 = v2)).
-
-Require Import SetsClass.SetsClass.
-Require Import Coq.ZArith.ZArith.
-Require Import Coq.micromega.Psatz.
-Require Import Coq.Classes.Morphisms.
-Require Import Coq.Lists.List.
-Require Import Coq.Sorting.Permutation.
-Require Import PL.FixedPoint.
-Require Import PL.Monad.
-Import SetsNotation
-        KleeneFix Sets_CPO
-        SetMonadHoare
-        SetMonadOperator0
-        SetMonadOperator1
-        MonadNotation.
-Local Open Scope sets.
-Local Open Scope Z.
-Local Open Scope monad.
-
-Definition move_up_in_insert (bt: BinTree Z Z): SetMonad.M (ContinueOrBreak (BinTree Z Z) (BinTree Z Z)) :=
-  choice
-    (test (StrictPartialHeap bt);; continue (move_up_in_partial_heap bt))
-    (test (~ StrictPartialHeap bt);; break bt).
-
-Definition count (n: Z): SetMonad.M Z :=
-  repeat_break (body_count n) 0.
-
-Definition insert (v: Z): StateRelMonad.M (BinTree Z Z) unit :=
-  fun (bt1: BinTree Z Z) (_: unit) (bt2: BinTree Z Z) =>
-    (* 检查节点 v 是合法的 *)
-    BinaryTree.vvalid Z Z bt1 v /\ (
-    (* 存在父节点 parent *)
-    exists parent, BinaryTree.step_u bt1 v parent ->
-      (* 使用新的 swap_nodes_rel 交换节点 *)
-      (swap_nodes v parent) bt1 tt bt2).
-
 
 
 (* Definition RemoveMin (bt: BinTree Z Z) (v: Z) (bt': BinTree Z Z): Prop :=
