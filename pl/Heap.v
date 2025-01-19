@@ -507,8 +507,6 @@ Theorem partial_heap_classification:
   forall h: BinTree Z Z,
     PartialHeap h -> StrictPartialHeap h \/ Heap h.
 Proof.
-Admitted.
-(* Proof.
   intros h PH.
   destruct (classic (exists v: Z,
     h.(vvalid) v /\
@@ -523,57 +521,14 @@ Admitted.
       exists x.
       split.
       + apply H.
-      + split.
-        ++ apply H.
-        ++ intros.
-            destruct H as [Hvx [Hy [Hstep Hx_gt_y]]].
-            destruct H1 as [Hstep_l | Hstep_r]. 
-            +++ specialize exists_violation0 with x0 x.
-                destruct (Z.compare_spec x0 y) as [Hlt | Heq | Hgt].
-                ++++ rewrite Hlt.
-                    reflexivity.
-                ++++ apply Z.lt_le_incl.
-                    assumption.
-                ++++ destruct exists_violation0.
-                    +++++ split.
-                        ++++++ destruct Hstep_l.
-                              destruct H.
-                              destruct H.
-                              apply step_src_valid.
-                        ++++++ exists y.
-                              split.
-                              +++++++ tauto.
-                              +++++++ lia. 
-                    +++++ split.
-                        ++++++ apply Hvx.
-                        ++++++ exists Hy.
-                              tauto.
-                    +++++ lia.
-            +++ specialize exists_violation0 with x0 x.
-                destruct (Z.compare_spec x0 y) as [Hlt | Heq | Hgt].
-                ++++ rewrite Hlt.
-                    reflexivity.
-                ++++ apply Z.lt_le_incl.
-                    assumption.
-                ++++ destruct exists_violation0.
-                    +++++ split.
-                        ++++++ destruct Hstep_r.
-                              destruct H.
-                              destruct H.
-                              apply step_src_valid.
-                        ++++++ exists y.
-                              split.
-                              +++++++ tauto.
-                              +++++++ lia. 
-                    +++++ split.
-                        ++++++ apply Hvx.
-                        ++++++ exists Hy.
-                              tauto.
-                    +++++ lia.
+      + intros.
+        specialize (exists_violation0 x v2).
+        destruct exists_violation0.
+        ++ tauto.
+        ++ tauto.
+        ++ reflexivity.
     (*无局部破坏*)
     - right.
-    Search "not_ex_all_not".
-    Locate not_ex_all_not.
     pose proof not_ex_all_not Z _ Hnoviol.
     simpl in H.
     split.
@@ -607,25 +562,66 @@ Admitted.
           destruct H1.
           +++ tauto.
           +++ lia.
-Qed.                           *)
+Qed.     
+
 
 Theorem inverse_partial_heap_classification:
   forall h: BinTree Z Z,
     StrictPartialHeap h \/ Heap h -> PartialHeap h.
 Proof.
-Admitted.
+  intros.
+  split.
+  destruct H as [H_S | H_H].
+  (*Strict Partial Heap*)
+  - destruct H_S.
+    destruct exists_violation_strict0.
+    intros.
+    destruct H.
+    transitivity x.
+    + specialize (H2 v1).
+      destruct H2.
+      ++ tauto.
+      ++ reflexivity.
+    + specialize (H2 v2).
+      destruct H2.
+      ++ tauto.
+      ++ reflexivity.
+  (*Heap*)
+  - destruct H_H.
+    intros.
+    exfalso.
+    destruct H.
+    destruct H1.
+    destruct H1 as [[H_l | H_r] H_gt].
+    + specialize (heap_l0 v1 x).
+      destruct heap_l0.
+      ++ tauto.
+      ++ tauto.
+    + specialize (heap_r0 v1 x).
+      destruct heap_r0.
+      ++ tauto.
+      ++ tauto.
+Qed.
 
 Theorem eq_PH_SHH:
   forall h: BinTree Z Z,
     PartialHeap h <-> StrictPartialHeap h \/ Heap h.
 Proof.
-Admitted.
+  intros.
+  split.
+  apply partial_heap_classification.
+  apply inverse_partial_heap_classification.
+Qed.
 
 Theorem eq_SH_SH123:
   forall h: BinTree Z Z,
     StrictPartialHeap h <-> StrictPartialHeap1 h \/ StrictPartialHeap2 h \/ StrictPartialHeap3 h.
 Proof.
-Admitted.
+  intros.
+  split.
+  apply strict_partial_heap_classification.
+  apply inverse_strict_partial_heap_classification.
+Qed.
 
 Definition Root (h: BinTree Z Z) (v: Z): Prop :=
   h.(vvalid) v ->
